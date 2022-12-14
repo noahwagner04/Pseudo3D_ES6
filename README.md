@@ -23,7 +23,7 @@ A simple pseudo 3d engine software renderer written in JS.
 * `pseudo_3d.js` the main file to import, aggregates all sub modules into one module
 * `index.html` main html file to be used
 
-## Referencess
+## References
 * https://lodev.org/cgtutor/raycasting.html
 * https://docs.google.com/document/d/1efgJuqZp1GQ1a_TrpnY2Sj50h_5ntfFEcyX8-aR0GE0/edit#heading=h.5pw5j9ip5ics
 * https://www.youtube.com/playlist?list=PLCtGghEtHgGPL4v8WIk9xEx5Pj_tHT7eG
