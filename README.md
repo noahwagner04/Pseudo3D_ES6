@@ -1,4 +1,4 @@
-# Pseudo3D_JS_ES6
+# Pseudo3D_ES6
 A simple pseudo 3d engine software renderer written in JS.
 
 ## Features
