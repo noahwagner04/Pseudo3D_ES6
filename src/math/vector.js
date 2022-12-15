@@ -135,14 +135,14 @@ export class Vector {
 		return this;
 	}
 
-	// gets the squared distance between two vectors
-	getDistSqBtw(vector1, vector2) {
-		return vector2.clone().subtract(vector1).getMagSqr();
+	// gets the squared distance between this vector and another one
+	getDistSqBtw(vector) {
+		return vector.clone().subtract(this).getMagSqr();
 	}
 
 	// gets the actual distance between two vectors
-	getDistBtw(vector1, vector2) {
-		return Math.sqrt(this.getDistSqBtw(vector1, vector2));
+	getDistBtw(vector) {
+		return Math.sqrt(this.getDistSqBtw(vector));
 	}
 
 	// returns the dot product between this vector and another
@@ -168,7 +168,7 @@ export class Vector {
 		let oldY = this.y;
 		let oldZ = this.z;
 
-		if (this.is_2d) {
+		if (this.is2d) {
 			// if we are a 2d vector, rotate using the 2d rotation matrix
 			this.x = oldX * cosX - oldY * sinX;
 			this.y = oldX * sinX + oldY * cosX;
@@ -205,7 +205,20 @@ export class Vector {
 	vector onto another vector
 	*/
 	project(vector) {
-		return vector.clone().setMag(this.getScalarProj(vector));
+		return this.setTo(vector.clone().setMag(this.getScalarProj(vector)));
+	}
+
+	// sets this vector equal to the provided vector
+	setTo(vector) {
+		this.x = vector.x;
+		this.y = vector.y;
+
+		// only set the z component if we are 3d
+		if(this.is2d) {
+			this.z = vector.z;
+		}
+
+		return this;
 	}
 
 	// clones this vector
@@ -218,5 +231,4 @@ export class Vector {
 			return new Vector(this.x, this.y, this.z);
 		}
 	}
-
 }
