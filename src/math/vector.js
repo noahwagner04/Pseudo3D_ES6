@@ -8,6 +8,17 @@ export class Vector {
 
 	// constructor expects all number inputs
 	constructor(x, y, z) {
+		// input type checking
+		if (typeof x !== "number" || typeof y !== "number") {
+			throw new Error(
+				"Vector constructor must recieve at least two numbers"
+			);
+		}
+
+		if (typeof z !== "number" && typeof z !== "undefined") {
+			throw new Error("Vector z component must be a number");
+		}
+
 		this.x = x;
 		this.y = y;
 
@@ -26,6 +37,12 @@ export class Vector {
 	expects a vector as input
 	*/
 	add(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.add must recieve an object of type Vector"
+			);
+		}
 		this.x += vector.x;
 		this.y += vector.y;
 
@@ -41,6 +58,10 @@ export class Vector {
 	expects a number as input
 	*/
 	addConst(num) {
+		// input type checking
+		if (typeof num !== "number") {
+			throw new Error("Vector.addConst must recieve a number");
+		}
 		this.x += num;
 		this.y += num;
 
@@ -56,6 +77,12 @@ export class Vector {
 	expects a vector as input
 	*/
 	subtract(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.subtract must recieve an object of type Vector"
+			);
+		}
 		this.x -= vector.x;
 		this.y -= vector.y;
 
@@ -71,6 +98,10 @@ export class Vector {
 	expects a number as input
 	*/
 	subtractConst(num) {
+		// input type checking
+		if (typeof num !== "number") {
+			throw new Error("Vector.subtractConst must recieve a number");
+		}
 		this.x -= num;
 		this.y -= num;
 
@@ -83,6 +114,10 @@ export class Vector {
 
 	// scale this vector by some scalar
 	scale(scalar) {
+		// input type checking
+		if (typeof scalar !== "number") {
+			throw new Error("Vector.scale must recieve a number");
+		}
 		this.x *= scalar;
 		this.y *= scalar;
 
@@ -131,22 +166,45 @@ export class Vector {
 	assumes number input
 	*/
 	setMag(newMag) {
+		// input type checking
+		if (typeof newMag !== "number") {
+			throw new Error("Vector.setMag must recieve a number");
+		}
 		this.normalize().scale(newMag);
 		return this;
 	}
 
 	// gets the squared distance between this vector and another one
-	getDistSqBtw(vector) {
+	getSqrDistBtw(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.getSqrDistBtw must recieve an object of type Vector"
+			);
+		}
 		return vector.clone().subtract(this).getMagSqr();
 	}
 
 	// gets the actual distance between two vectors
 	getDistBtw(vector) {
-		return Math.sqrt(this.getDistSqBtw(vector));
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.getDistBtw must recieve an object of type Vector"
+			);
+		}
+		return Math.sqrt(this.getSqrDistBtw(vector));
 	}
 
 	// returns the dot product between this vector and another
 	dot(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.dot must recieve an object of type Vector"
+			);
+		}
+
 		if (this.is2d) {
 			// ignore the z component if this vector is 2d
 			return this.x * vector.x + this.y * vector.y;
@@ -157,6 +215,19 @@ export class Vector {
 
 	// rotates the vector based on given angles
 	rotate(pitch, yaw, roll) {
+		// input type checking
+		if (typeof pitch !== "number") {
+			throw new Error("Vector.rotate must recieve at least one number");
+		}
+
+		// if the vector is 3d, we must recieve all three rotation angles
+		if (!this.is2d &&
+			(typeof yaw !== "number" || typeof roll !== "number")) {
+			throw new Error(
+				"Vector.rotate must recieve three numbers if the vector is 3d"
+			);
+		}
+
 		// coefficients of the rotation matrices
 		let cosX = Math.cos(pitch);
 		let sinX = Math.sin(pitch);
@@ -189,6 +260,12 @@ export class Vector {
 
 	// gets the angle between this vector and another
 	getAngleBtw(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.getAngleBtw must recieve an object of type Vector"
+			);
+		}
 		return Math.acos(this.dot(vector) / (this.getMag() * vector.getMag()));
 	}
 
@@ -197,6 +274,12 @@ export class Vector {
 	provided vector
 	*/
 	getScalarProj(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.getScalarProj must recieve an object of type Vector"
+			);
+		}
 		return this.dot(vector) / vector.getMag();
 	}
 
@@ -205,16 +288,29 @@ export class Vector {
 	vector onto another vector
 	*/
 	project(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.project must recieve an object of type Vector"
+			);
+		}
 		return this.setTo(vector.clone().setMag(this.getScalarProj(vector)));
 	}
 
 	// sets this vector equal to the provided vector
 	setTo(vector) {
+		// input type checking
+		if (!Vector.isVector(vector)) {
+			throw new Error(
+				"Vector.setTo must recieve an object of type Vector"
+			);
+		}
+
 		this.x = vector.x;
 		this.y = vector.y;
 
 		// only set the z component if we are 3d
-		if(this.is2d) {
+		if (this.is2d) {
 			this.z = vector.z;
 		}
 
@@ -230,5 +326,10 @@ export class Vector {
 			// clone all three components if we are 3d
 			return new Vector(this.x, this.y, this.z);
 		}
+	}
+
+	// returns true of argument is an instance of vector
+	static isVector(vector) {
+		return vector instanceof Vector ? true : false;
 	}
 }
