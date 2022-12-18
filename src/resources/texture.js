@@ -5,7 +5,9 @@ loading. Textures are used to hold pixel information for sprites, walls, the
 ceiling and floor, and skybox textures.
 */
 
-import { Color } from "/src/resources/color.js";
+import {
+	Color
+} from "/src/resources/color.js";
 
 export class Texture {
 	/*
@@ -24,12 +26,13 @@ export class Texture {
 		// there must be a path attribute on the config object
 		if (typeof config.path !== "string") {
 			throw new Error(
-				"Texture must recieve source path of type String for image to load"
+				"Texture must recieve source path of type String for " +
+				"image to load"
 			);
 		}
 
 		// check if we recieved a valid temporary color
-		if (config.temporaryColor) {
+		if (config.temporaryColor !== undefined) {
 			if (config.temporaryColor instanceof Color) {
 				this.temporaryColor = config.temporaryColor;
 			} else {
@@ -44,7 +47,9 @@ export class Texture {
 			if (Number.isInteger(config.width) && config.width > 0) {
 				this.width = config.width;
 			} else {
-				throw new Error("Texture width must be an integer greater than 0");
+				throw new Error(
+					"Texture width must be an integer greater than 0"
+				);
 			}
 		}
 
@@ -53,7 +58,9 @@ export class Texture {
 			if (Number.isInteger(config.height) && config.height > 0) {
 				this.height = config.height;
 			} else {
-				throw new Error("Texture height must be an integer greater than 0");
+				throw new Error(
+					"Texture height must be an integer greater than 0"
+				);
 			}
 		}
 

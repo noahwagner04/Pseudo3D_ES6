@@ -12,7 +12,8 @@ export class Color {
 				!(arguments[i] >= 0 && arguments[i] <= 255)
 			) {
 				throw new Error(
-					"Color must recieve four integers, each in the range [0, 255]"
+					"Color must recieve four integers, each in the " + 
+					"range [0, 255]"
 				);
 			}
 		}

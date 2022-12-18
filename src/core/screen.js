@@ -52,7 +52,12 @@ export class Screen {
 		this.htmlCanvasElement.style["image-rendering"] = "pixelated";
 
 		// actual pixel data of the screen
-		this.pixels = this.drawingContext.getImageData(0, 0, this.renderWidth, this.renderHeight).data;
+		this.pixels = this.drawingContext.getImageData(
+			0,
+			0,
+			this.renderWidth,
+			this.renderHeight
+		).data;
 
 		// holds the y depth from the camera for every pixel of the screen
 		this.depthBuffer = [];
@@ -69,7 +74,10 @@ export class Screen {
 	// clears the pixel and depth buffers
 	clear() {
 		// clear the canvas by drawing an empty ImageData
-		let emptyImageData = this.drawingContext.createImageData(this.renderWidth, this.renderHeight);
+		let emptyImageData = this.drawingContext.createImageData(
+			this.renderWidth,
+			this.renderHeight
+		);
 		this.drawingContext.putImageData(emptyImageData, 0, 0);
 
 		// reset the depth buffer
@@ -80,7 +88,10 @@ export class Screen {
 
 	// draws the pixels data array to the screen
 	update() {
-		let tempImageData = new ImageData(this.pixels, this.renderWidth);
+		let tempImageData = new ImageData(
+			this.pixels,
+			this.renderWidth
+		);
 		this.drawingContext.putImageData(tempImageData, 0, 0);
 	}
 }

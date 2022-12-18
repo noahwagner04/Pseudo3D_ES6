@@ -18,6 +18,11 @@ export class Orientation {
 			);
 		}
 		this.position = new Vector(posX, posY);
-		this.direction = new Vector(dirX, dirY);
+
+		/*
+		normalize direction in the case that the user 
+		passed a non unit vector
+		*/
+		this.direction = new Vector(dirX, dirY).normalize();
 	}
 }
