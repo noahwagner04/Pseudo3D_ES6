@@ -29,23 +29,22 @@ export default class Entity {
 			);
 		}
 
+		// vector arguments
 		let config_attributes = [
 			"position",
 			"direction",
 			"size"
 		];
 
-		// check if we recieved valid position, direction, and size attributes
+		// check if we received valid position, direction, and size attributes
 		for (let i = 0; i < config_attributes.length; i++) {
 			if (config[config_attributes[i]] !== undefined && (
 					typeof config[config_attributes[i]] !== "object" ||
 					typeof config[config_attributes[i]].x !== "number" ||
 					typeof config[config_attributes[i]].y !== "number")) {
 				throw new Error(
-					" Entity " +
-					config_attributes[i] +
-					" must be an object with x and y attributes that " +
-					"are numbers"
+					"Entity " + config_attributes[i] + " must be an object" +
+					" with x and y attributes that are numbers"
 				);
 			}
 		}
@@ -58,7 +57,7 @@ export default class Entity {
 		// set appearance attribute
 		this.appearance = config.appearance;
 
-		// if position wasn't provided, use a the origin
+		// if position wasn't provided, use the origin
 		let position = config.position || {
 			x: 0,
 			y: 0
