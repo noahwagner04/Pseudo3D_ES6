@@ -74,7 +74,7 @@ export default class Ray {
 		this.deltaDistY = Math.abs(rayLength / dirY);
 
 		// the wall id we hit
-		this.hit;
+		this.hit = 0;
 
 		/*
 		A horizontal face corresponds to a side of 1, while a vertical face
@@ -114,6 +114,9 @@ export default class Ray {
 
 	// casts the ray, this function is meant for the engines use
 	cast(scene) {
+		// assume we haven't already hit a wall
+		this.hit = 0;
+
 		// perform DDA casting
 		while (this.hit === 0) {
 			// increment ray position
