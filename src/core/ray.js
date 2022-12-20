@@ -1,7 +1,8 @@
 /*
 The Ray Class is a general ray casting utility meant to be used by the user and
-the engine, DDA is used by the core of the raycast engine and cast should be 
-called by the user
+the engine, If a user is utilizing the class, rayLength should not be 
+specified; however, the engine will set raylegnth to 1 for certain rendering 
+purposes.
 */
 
 export default class Ray {
