@@ -39,7 +39,7 @@ export default class Ray {
 			Math.sqrt(Math.pow(dirX - startX, 2) + Math.pow(dirY - startY, 2));
 
 		// setup ray attributes
-		init(startX, startY, dirX, dirY, rayLength);
+		this.init(startX, startY, dirX, dirY, rayLength);
 	}
 
 	// initializes the ray's properties to be ready for casting.
