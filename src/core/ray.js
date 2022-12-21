@@ -5,9 +5,11 @@ specified; however, the engine will set raylegnth to 1 for certain rendering
 purposes.
 */
 
+import Scene from "/src/core/scene.js";
+
 export default class Ray {
 	// checks if inputs are the right type, then calls init
-	constructor(startX, startY, dirX, dirY, rayLength) {
+	constructor(scene, startX, startY, dirX, dirY, rayLength) {
 
 		// check if the provided starting and direction coordinates are valid
 		if (typeof startX !== "number" ||
@@ -15,7 +17,7 @@ export default class Ray {
 			typeof dirX !== "number" ||
 			typeof dirY !== "number") {
 			throw new Error(
-				"Ray constructor must receive four numbers: startX, startY," + 
+				"Ray constructor must receive four numbers: startX, startY," +
 				" dirX, dirY"
 			);
 		}
@@ -26,6 +28,16 @@ export default class Ray {
 				"Ray constructor must receive a length that is a number"
 			);
 		}
+
+		// check if provided scene is valid
+		if (!(scene instanceof Scene)) {
+			throw new Error(
+				"Ray constructor must receive a scene of type Scene"
+			);
+		}
+
+		// if the scene is valid, assign it to the instance
+		this.scene = scene;
 
 		/*
 		if rayLength is not provided, set it to the length of the vector 
@@ -112,8 +124,8 @@ export default class Ray {
 		this.distance = 0;
 	}
 
-	// casts the ray, this function is meant for the engines use
-	cast(scene) {
+	// casts the ray, this function is meant for the engine and user use
+	cast() {
 		// assume we haven't already hit a wall
 		this.hit = 0;
 
@@ -135,13 +147,15 @@ export default class Ray {
 			// check if ray is out of map bounds, manually stop casting if so
 			if (this.mapX < 0 ||
 				this.mapY < 0 ||
-				this.mapX >= scene.worldWidth ||
-				this.mapY >= scene.worldHeight) {
+				this.mapX >= this.scene.worldMap.width ||
+				this.mapY >= this.scene.worldMap.height) {
 				break;
 			}
 
 			// if we are in the bounds, check if we hit a wall
-			this.hit = scene.worldMap[this.mapX][this.mapY];
+			this.hit = this.scene.worldMap.data[
+				this.mapX + this.mapY * this.scene.worldMap.width
+			];
 		}
 
 		/*
