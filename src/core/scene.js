@@ -6,6 +6,7 @@ information
 
 import Color from "/src/resources/color.js";
 import Texture from "/src/resources/texture.js";
+import Entity from "/src/core/entity.js";
 
 export default class Scene {
 	/*
@@ -60,6 +61,40 @@ export default class Scene {
 		this.skybox = config.skybox;
 		this.lighting = config.lighting;
 	}
+
+	/*
+	for now this function is used to add game objects to the scene (entities), 
+	but later it will be used for adding more cellInfo attributes, lighting 
+	options, floor and ceiling options, fog, or any physical thing that
+	could be added durring runtime that affects the game world
+	*/
+	add(object) {
+		// if the object is an entity, add it to the entities array
+		if (object instanceof Entity) {
+			this.gameObject.entities.push(object);
+		}
+
+		// add more if checks here for different object inputs
+
+		return this;
+	}
+
+	/*
+	same idea as add, but now removes the specified object (again, right now I 
+	only handle the case when the object is an entity)
+	*/
+	remove(object) {
+		// if the object is an entity remove it from the array
+		if (object instanceof Entity) {
+			let index = this.gameObject.entities.indexOf(object);
+			this.gameObject.entities.splice(index, 1);
+		}
+
+		// add more if checks here for different object inputs
+
+		return this;
+	}
+
 }
 
 // ----input handling functions, each modify the given object to be valid-----
