@@ -323,7 +323,3 @@ function checkLighting(lighting) {
 	lighting.enabled = !((lighting.sideLight === 1) &&
 		(lighting.ambientLight === 1));
 }
-
-// worldWidth
-// worldHeight
-// worldMap
