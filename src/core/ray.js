@@ -11,6 +11,13 @@ export default class Ray {
 	// checks if inputs are the right type, then calls init
 	constructor(scene, startX, startY, dirX, dirY, rayLength) {
 
+		// check if provided scene is valid
+		if (!(scene instanceof Scene)) {
+			throw new Error(
+				"Ray constructor must receive a scene of type Scene"
+			);
+		}
+
 		// check if the provided starting and direction coordinates are valid
 		if (typeof startX !== "number" ||
 			typeof startY !== "number" ||
@@ -26,13 +33,6 @@ export default class Ray {
 		if (rayLength !== undefined && typeof rayLength !== "number") {
 			throw new Error(
 				"Ray constructor must receive a length that is a number"
-			);
-		}
-
-		// check if provided scene is valid
-		if (!(scene instanceof Scene)) {
-			throw new Error(
-				"Ray constructor must receive a scene of type Scene"
 			);
 		}
 
