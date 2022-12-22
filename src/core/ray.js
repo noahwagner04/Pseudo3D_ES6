@@ -74,8 +74,8 @@ export default class Ray {
 		e.g. if the ray's direction is up and to the left, the step increment
 		checks in the scene worldMap 2d array would be: stepX = -1, stepY = 1
 		*/
-		this.sstepX;
-		this.sstepY;
+		this.stepX;
+		this.stepY;
 
 		/*
 		the ray's distance from crossing one horizontal / vertical line to 
