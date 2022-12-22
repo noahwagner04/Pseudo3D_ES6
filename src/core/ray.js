@@ -40,16 +40,15 @@ export default class Ray {
 		this.scene = scene;
 
 		/*
-		if rayLength is not provided, set it to the length of the vector 
-		whose starting point is (startX, startY) and whose terminal point 
-		is (dirX, dirY), this will make the distance attribute equal the 
-		actual total traveled distance (instead of perpendicular distance)
+		if rayLength is not provided, set it to the length of the direction
+		vector, this will make the distance attribute equal the actual total 
+		traveled distance (instead of perpendicular distance)
 		NOTE: the provided rayLength doesn't need to be equal to the actual
 		initial length of the ray, it just defaults to that if no length is
 		provided
 		*/
-		rayLength = rayLength ||
-			Math.sqrt(Math.pow(dirX - startX, 2) + Math.pow(dirY - startY, 2));
+		rayLength = rayLength || Math.sqrt(dirX * dirX + dirY * dirY);
+		console.log(rayLength);
 
 		// setup ray attributes
 		this.init(startX, startY, dirX, dirY, rayLength);
