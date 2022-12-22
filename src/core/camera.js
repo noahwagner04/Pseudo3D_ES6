@@ -124,10 +124,10 @@ export default class Camera {
 		/*
 		this vector represents the local x axis of the camera, and is used
 		throughout the rendering process of the raycast world
-		cameraPlane length will be set to the aspect ratio of the window 
+		plane length will be set to the aspect ratio of the window 
 		its rendering to (this is done by the render functions)
 		*/
-		this.cameraPlane = new Vector(
+		this.plane = new Vector(
 			-this.orientation.direction.y,
 			this.orientation.direction.x
 		);
@@ -164,8 +164,8 @@ export default class Camera {
 		keep camera plane perpendicular, length will be set when the camera is 
 		passed to render functions
 		*/
-		this.cameraPlane.x = -this.orientation.direction.y;
-		this.cameraPlane.y = this.orientation.direction.x;
+		this.plane.x = -this.orientation.direction.y;
+		this.plane.y = this.orientation.direction.x;
 
 		return this;
 	}
@@ -190,9 +190,9 @@ export default class Camera {
 		this.orientation.direction.x = Math.cos(angle) * focalLength;
 		this.orientation.direction.y = Math.sin(angle) * focalLength;
 
-		// update the cameraPlane to be perpendicular to the direction vector
-		this.cameraPlane.x = -this.orientation.direction.y;
-		this.cameraPlane.y = this.orientation.direction.x;
+		// update the plane to be perpendicular to the direction vector
+		this.plane.x = -this.orientation.direction.y;
+		this.plane.y = this.orientation.direction.x;
 
 		return this;
 	}
