@@ -33,8 +33,8 @@ export default class Screen {
 		this.quality = quality;
 
 		// the true width and height of the canvas
-		this.renderWidth = Math.floor(width * quality) || 1;
-		this.renderHeight = Math.floor(height * quality) || 1;
+		this.renderWidth = Math.round(width * quality) || 1;
+		this.renderHeight = Math.round(height * quality) || 1;
 
 		// initialize the canvas element
 		this.htmlCanvasElement = document.createElement("canvas");
@@ -63,7 +63,7 @@ export default class Screen {
 		this.depthBuffer = [];
 
 		// initialize the depth buffer
-		for (let i = 0; i < this.height * this.width; i++) {
+		for (let i = 0; i < this.renderHeight * this.renderWidth; i++) {
 			this.depthBuffer[i] = Infinity;
 		}
 
@@ -80,8 +80,11 @@ export default class Screen {
 		);
 		this.drawingContext.putImageData(emptyImageData, 0, 0);
 
+		// set the pixels array to the emptyImageData array
+		this.pixels = emptyImageData.data;
+
 		// reset the depth buffer
-		for (let i = 0; i < this.height * this.width; i++) {
+		for (let i = 0; i < this.renderHeight * this.renderWidth; i++) {
 			this.depthBuffer[i] = Infinity;
 		}
 	}

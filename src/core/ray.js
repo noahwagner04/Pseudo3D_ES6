@@ -161,7 +161,7 @@ export default class Ray {
 		because our collision detection is one step ahead), the calculation 
 		depends on the side that was hit
 		*/
-		if (side === 0) {
+		if (this.side === 0) {
 			this.distance = this.sideDistX - this.deltaDistX;
 		} else {
 			this.distance = this.sideDistY - this.deltaDistY;

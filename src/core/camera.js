@@ -119,7 +119,8 @@ export default class Camera {
 			direction.y
 		);
 
-		this.orientation.direction.scale(config.focalLength || 1);
+		// focal length of the camera
+		this.focalLength = config.focalLength || 1;
 
 		/*
 		this vector represents the local x axis of the camera, and is used
