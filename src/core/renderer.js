@@ -59,99 +59,150 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			1
 		);
 
-		// cast the ray
-		ray.cast();
-
-		// get a local refference to the information about the wall we hit
-		let wallInfo = scene.worldMap.cellInfo[ray.hit];
-
 		/*
-		if the ray left the bounds of the map, or it hit a cell that isn't 
-		defined in the cellInfo struct, continue casting the next ray
+		save the last drawStart so we can check if further walls must be drawn 
+		(in this case, smallest means highest wall)
 		*/
-		if (ray.hit === 0 || wallInfo === undefined) {
-			continue;
-		}
+		let smallestDrawStart = Infinity;
 
-		// calculate the height of the column to draw (in pixel coordinates)
-		let lineHeight = screen.renderHeight / ray.distance;
+		// keep casting the ray until it goes out of bounds
+		while (1) {
 
-		// the center of the columns that we will be drawing
-		let columnCenter = screen.renderHeight / 2;
+			// cast the ray
+			ray.cast();
 
-		// now calculate the two endpoints of the column (in pixel coordinates)
-		let drawStart = Math.floor(columnCenter - lineHeight / 2);
-		let drawEnd = Math.floor(columnCenter + lineHeight / 2);
-
-		// try to access the pixels of the appearance
-		let drawTexture = wallInfo.appearance.hasLoaded;
-
-		/*
-		if the pixel information for the texture doesn't exist, render a color
-		instead
-		*/
-		if (!drawTexture) {
-			// the color we are going to use
-			let color;
+			// get a local refference to the information about the wall we hit
+			let wallInfo = scene.worldMap.cellInfo[ray.hit];
 
 			/*
-			the color could be either from an unloaded texture or the 
-			appearance itself could be a color
+			if the ray left the bounds of the map, continue casting the next 
+			ray
 			*/
-			if (wallInfo.appearance instanceof Texture) {
-				color = wallInfo.appearance.temporaryColor;
-			} else {
-				color = wallInfo.appearance;
+			if (ray.hit === 0) {
+				break;
 			}
 
-			// draw the single colored column
-			drawColoredColumn(
-				screen,
-				color,
-				ray.distance,
-				x,
-				drawStart,
-				drawEnd
-			);
-
-		} else {
 			/*
-			the pixels array does exist, so calculate relavent variables for 
-			texture mapping
+			if the hit cell isn't defined in the cellInfo struct, continue
+			casting the current ray
 			*/
+			if (wallInfo === undefined) {
+				continue;
+			}
 
-			// where exactly the wall was hit (depends on the side we hit)
-			let wallX;
-			if (ray.side === 0) {
-				wallX = camera.orientation.position.y + ray.distance * rayDirY;
+			/*
+			calculate the height of the column to draw (in pixel coordinates)
+			*/
+			let lineHeight = screen.renderHeight / ray.distance;
+
+			// the center of the columns that we will be drawing
+			let columnCenter = screen.renderHeight / 2;
+
+			/*
+			now calculate the two endpoints of the column (in pixel 
+			coordinates), drawStart depends on the height of the wall
+			*/
+			let drawStart = Math.floor(columnCenter -
+				(lineHeight * wallInfo.height - lineHeight / 2));
+			let drawEnd = Math.floor(columnCenter + lineHeight / 2);
+
+			// if the top of the projected wall is above the 
+			if (drawStart <= smallestDrawStart) {
+				/*
+				set the drawEnd to the drawStart of the tallest wall in this 
+				column of the screen (don't do this if we are the first wall 
+				the ray hit, which can be detected if smallestDrawStart is 
+				Infinity)
+				*/
+				drawEnd = smallestDrawStart === Infinity ?
+					drawEnd : smallestDrawStart;
+
+				// update the smallestDrawStart (or tallest wall)
+				smallestDrawStart = drawStart;
 			} else {
-				wallX = camera.orientation.position.x + ray.distance * rayDirX;
+				// continue casting ray if this wall is too short to be seen
+				continue;
 			}
 
-			// make wallX relative to the cell it hit
-			wallX -= Math.floor(wallX);
+			// try to access the pixels of the appearance
+			let drawTexture = wallInfo.appearance.hasLoaded;
 
-			// get the texture x coordinate for the column
-			let texX = Math.floor(wallX * wallInfo.appearance.width);
+			/*
+			if the pixel information for the texture doesn't exist, render a 
+			color instead
+			*/
+			if (!drawTexture) {
+				// the color we are going to use
+				let color;
 
-			// flip the texture X coordinate depending on the wall face we hit
-			if (ray.side === 0 && rayDirX > 0) {
-				texX = wallInfo.appearance.width - texX - 1;
+				/*
+				the color could be either from an unloaded texture or the 
+				appearance itself could be a color
+				*/
+				if (wallInfo.appearance instanceof Texture) {
+					color = wallInfo.appearance.temporaryColor;
+				} else {
+					color = wallInfo.appearance;
+				}
+
+				// draw the single colored column
+				drawColoredColumn(
+					screen,
+					color,
+					ray.distance,
+					x,
+					drawStart,
+					drawEnd
+				);
+
+			} else {
+				/*
+				the pixels array does exist, so calculate relavent variables 
+				for texture mapping
+				*/
+
+				// where exactly the wall was hit (depends on the side we hit)
+				let wallX;
+				if (ray.side === 0) {
+					wallX = camera.orientation.position.y +
+						ray.distance * rayDirY;
+				} else {
+					wallX = camera.orientation.position.x +
+						ray.distance * rayDirX;
+				}
+
+				// make wallX relative to the cell it hit
+				wallX -= Math.floor(wallX);
+
+				// get the texture x coordinate for the column
+				let texX = Math.floor(wallX * wallInfo.appearance.width);
+
+				/*
+				flip the texture X coordinate depending on the wall face we hit
+				*/
+				if (ray.side === 0 && rayDirX > 0) {
+					texX = wallInfo.appearance.width - texX - 1;
+				}
+				if (ray.side === 1 && rayDirY < 0) {
+					texX = wallInfo.appearance.width - texX - 1;
+				}
+
+				/*
+				draw the textured column (pass lineHeight for texture 
+				mapping purposes, drawEnd - drawStart doesn't always equal 
+				lineHeight)
+				*/
+				drawTexturedColumn(
+					screen,
+					wallInfo.appearance,
+					texX,
+					ray.distance,
+					x,
+					drawStart,
+					drawEnd,
+					Math.floor(lineHeight * wallInfo.height)
+				);
 			}
-			if (ray.side === 1 && rayDirY < 0) {
-				texX = wallInfo.appearance.width - texX - 1;
-			}
-
-			// draw the textured column
-			drawTexturedColumn(
-				screen,
-				wallInfo.appearance,
-				texX,
-				ray.distance,
-				x,
-				drawStart,
-				drawEnd
-			);
 		}
 	}
 };
@@ -199,9 +250,18 @@ function drawColoredColumn(screen, color, depth, x, startY, endY) {
 }
 
 // draws a vertical slice of the texture provided at the given coordinates
-function drawTexturedColumn(screen, texture, texX, depth, x, startY, endY) {
+function drawTexturedColumn(
+	screen,
+	texture,
+	texX,
+	depth,
+	x,
+	startY,
+	endY,
+	lineHeight
+) {
 	// how much to increase the texture coordinate per screen pixel
-	let step = texture.height / (endY - startY);
+	let step = texture.height / lineHeight;
 
 	/*
 	start at 0 if the top of the wall is in the bounds of the screen, 
