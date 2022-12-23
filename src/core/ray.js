@@ -48,7 +48,6 @@ export default class Ray {
 		provided
 		*/
 		rayLength = rayLength || Math.sqrt(dirX * dirX + dirY * dirY);
-		console.log(rayLength);
 
 		// setup ray attributes
 		this.init(startX, startY, dirX, dirY, rayLength);
