@@ -13,7 +13,7 @@ export function remap(num, s1, e1, s2, e2) {
 		typeof s1 !== "number" ||
 		typeof e1 !== "number" ||
 		typeof s2 !== "number" ||
-		typeof e2 !== "number" ||
+		typeof e2 !== "number"
 	) {
 		throw new Error("remap must recieve five numbers");
 	}
@@ -36,7 +36,7 @@ export function constrain(num, min, max) {
 	// input type checking
 	if (typeof num !== "number" ||
 		typeof min !== "number" ||
-		typeof max !== "number" ||
+		typeof max !== "number"
 	) {
 		throw new Error("constrain must recieve three numbers");
 	}

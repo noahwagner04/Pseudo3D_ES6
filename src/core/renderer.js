@@ -95,8 +95,12 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			*/
 			let lineHeight = screen.renderHeight / ray.distance;
 
-			// the center of the columns that we will be drawing
-			let columnCenter = screen.renderHeight / 2;
+			/*
+			the center of the columns that we will be drawing (depends on 
+			camera height and pitch)
+			*/
+			let columnCenter = Math.floor(camera.pitch + screen.renderHeight *
+				(0.5 + camera.orientation.position.z / ray.distance));
 
 			/*
 			now calculate the two endpoints of the column (in pixel 
