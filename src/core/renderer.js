@@ -99,8 +99,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			the center of the columns that we will be drawing (depends on 
 			camera height and pitch)
 			*/
-			let columnCenter = Math.floor(camera.pitch + screen.renderHeight *
-				(0.5 + camera.orientation.position.z / ray.distance));
+			let columnCenter = camera.pitch + screen.renderHeight *
+				(0.5 + camera.orientation.position.z / ray.distance);
 
 			/*
 			now calculate the two endpoints of the column (in pixel 
@@ -110,6 +110,12 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				(lineHeight * wallInfo.height - lineHeight / 2));
 			let drawEnd = Math.floor(columnCenter + lineHeight / 2);
 
+			/*
+			// the true drawEnd of the column (accounting for potential walls
+			infront of this one)
+			*/
+			let trueDrawEnd = drawEnd;
+
 			// if the top of the projected wall is above the 
 			if (drawStart <= smallestDrawStart) {
 				/*
@@ -118,8 +124,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				the ray hit, which can be detected if smallestDrawStart is 
 				Infinity)
 				*/
-				drawEnd = smallestDrawStart === Infinity ?
-					drawEnd : smallestDrawStart;
+				trueDrawEnd = smallestDrawStart === Infinity ?
+					trueDrawEnd : smallestDrawStart;
 
 				// update the smallestDrawStart (or tallest wall)
 				smallestDrawStart = drawStart;
@@ -192,9 +198,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				}
 
 				/*
-				draw the textured column (pass lineHeight for texture 
-				mapping purposes, drawEnd - drawStart doesn't always equal 
-				lineHeight)
+				draw the textured column (pass drawEnd - drawStart instead of 
+				lineHeight * wallHeight to avoid weird texturemapping bug)
 				*/
 				drawTexturedColumn(
 					screen,
@@ -203,8 +208,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 					ray.distance,
 					x,
 					drawStart,
-					drawEnd,
-					Math.floor(lineHeight * wallInfo.height)
+					trueDrawEnd,
+					drawEnd - drawStart
 				);
 			}
 		}
