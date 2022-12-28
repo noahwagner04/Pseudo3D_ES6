@@ -259,6 +259,7 @@ function drawColoredColumn(screen, color, depth, x, startY, endY) {
 }
 
 // draws a vertical slice of the texture provided at the given coordinates
+// NOTE: make fully transparent pixels not affect the depth buffer
 function drawTexturedColumn(
 	screen,
 	texture,
