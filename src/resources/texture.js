@@ -81,6 +81,12 @@ export default class Texture {
 		// set true when the image has loaded
 		this.hasLoaded = false;
 
+		/*
+		set the texture to a default transparent color if no temporary color 
+		was provided
+		*/
+		this.temporaryColor = config.temporaryColor || new Color(0, 0, 0, 0);
+
 		// the html image element we are going to load
 		this.htmlImageElement = new Image(this.width, this.height);
 
