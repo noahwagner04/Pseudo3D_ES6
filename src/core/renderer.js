@@ -223,62 +223,73 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 	let height = screen.renderHeight;
 	let width = screen.renderWidth;
 
+	// where the floor and ceiling end
+	let horizon = Math.floor(height / 2 + camera.pitch);
+
 	// find the start and end rows to draw floors or ceilings
-	let rowStart = scene.ceiling.enabled ? 0 : Math.floor(height / 2);
-	let rowEnd = scene.floor.enabled ? height : Math.floor(height / 2);
+	let rowStart = scene.ceiling.enabled ? 0 : horizon;
+	let rowEnd = scene.floor.enabled ? height : horizon;
 
-	// get the floor appearance
-	let floorIsColor;
+	// a local refference to the appearance of the floor / ceiling
 	let floorAppearance = scene.floor.appearance;
-
-	// get the ceiling appearance
-	let ceilingIsColor;
 	let ceilingAppearance = scene.ceiling.appearance;
 
-	// figure out if the floor is a color or a texture
-	if (floorAppearance instanceof Color) {
-		floorIsColor = true;
-	} else if (!floorAppearance.hasLoaded) {
-		floorIsColor = true;
-	} else {
-		floorIsColor = false;
+	/*
+	if the floor is an unloaded texture, set the appearance to the temporary 
+	color
+	*/
+	if (scene.floor.appearance.hasLoaded === false) {
+		floorAppearance = scene.floor.appearance.temporaryColor;
 	}
 
-	// figure out if the ceiling is a color or a texture
-	if (ceilingAppearance instanceof Color) {
-		ceilingIsColor = true;
-	} else if (!ceilingAppearance.hasLoaded) {
-		ceilingIsColor = true;
-	} else {
-		ceilingIsColor = false;
+	/*
+	if the ceiling is an unloaded texture, set the appearance to the temporary 
+	color
+	*/
+	if (scene.ceiling.appearance.hasLoaded === false) {
+		ceilingAppearance = scene.ceiling.appearance.temporaryColor;
 	}
 
 	// get the initial components of the left and rightmost rays
 	let rayDirLX = camera.orientation.direction.x * camera.focalLength -
-		camera.plane.x * screen.aspectRatio;
+		camera.plane.x * screen.aspectRatio * 0.5;
 	let rayDirLY = camera.orientation.direction.y * camera.focalLength -
-		camera.plane.y * screen.aspectRatio;
+		camera.plane.y * screen.aspectRatio * 0.5;
 	let rayDirRX = camera.orientation.direction.x * camera.focalLength +
-		camera.plane.x * screen.aspectRatio;
+		camera.plane.x * screen.aspectRatio * 0.5;
 	let rayDirRY = camera.orientation.direction.y * camera.focalLength +
-		camera.plane.y * screen.aspectRatio;
+		camera.plane.y * screen.aspectRatio * 0.5;
 
 	// for every row of the screen...
 	for (let y = rowStart; y < rowEnd; y++) {
-		// where the floor and ceiling end
-		let horizon = height / 2 + camera.pitch;
-
 		// check if this pixel is on the floor or the ceiling
-		// NOTE: make a plane variable (or planeAppearance) that way we don't need to check what plane we are in the inner loop
 		let isFloor = y > horizon;
+
+		// texture / color going to be rendered by inner loop
+		let appearance = isFloor ? floorAppearance : ceilingAppearance;
+
+		// done to avoid using instanceof operator in the nested loop
+		let appearanceIsColor = appearance instanceof Color;
+
+		// stretch factor of the appearance
+		let cellWidth = isFloor ?
+			scene.floor.cellWidth :
+			scene.ceiling.cellWidth;
+		let cellHeight = isFloor ?
+			scene.floor.cellHeight :
+			scene.ceiling.cellHeight;
 
 		// get the y position relative to the center of the horizon
 		let p = y - horizon;
 
-		// height of camera in pixel coordinates
+		/*
+		height of camera in pixel coordinates (relative to the current plane 
+		being rendered)
+		*/
 		let posZ = isFloor ?
 			camera.orientation.position.z * height :
-			height - camera.orientation.position.z * height;
+			height * scene.ceiling.height -
+			camera.orientation.position.z * height;
 
 		// horizontal distance the camera is from the current row
 		let rowDistance = Math.abs(posZ / p * camera.focalLength);
@@ -299,7 +310,7 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 			let index = x + y * width;
 
 			// if there is something obstructing this pixel, do not draw it
-			if(depthBuffer[index] <= rowDistance) {
+			if (screen.depthBuffer[index] <= rowDistance) {
 				// step to the right so the next pixel can be drawn correctly
 				floorX += floorStepX;
 				floorY += floorStepY;
@@ -310,20 +321,49 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 			let red;
 			let green;
 			let blue;
+			let alpha;
 
-			/*
-			decide color based on world position and if we are a ceiling or 
-			floor, and what the floor / ceilings appearance is
-			*/
+			if (appearanceIsColor) {
+				/*
+				if the appearance is a color, simply set red, green, blue, 
+				alpha to appearance attributes
+				*/
+				red = appearance.red;
+				green = appearance.green;
+				blue = appearance.blue;
+				alpha = appearance.alpha;
+			} else {
+				/*
+				if the appearance is a texture, get the texture coordinates of 
+				the color to draw texture coordinates
+				*/
+				let tx = Math.floor(appearance.width *
+					Math.abs(floorX % cellWidth / cellWidth));
+				let ty = Math.floor(appearance.height *
+					Math.abs(floorY % cellHeight / cellHeight));
+
+				// 1 dimentional index of the texture pixel to use
+				let texIndex = (tx + ty * appearance.width) * 4;
+
+				// get the color from the pixels array
+				red = appearance.pixels[texIndex];
+				green = appearance.pixels[texIndex + 1];
+				blue = appearance.pixels[texIndex + 2];
+				alpha = appearance.pixels[texIndex + 3];
+			}
 
 			// draw the color
 			screen.pixels[index * 4] = red;
 			screen.pixels[index * 4 + 1] = green;
 			screen.pixels[index * 4 + 2] = blue;
+			screen.pixels[index * 4 + 3] = alpha;
 
 			// increment the world coodinate for the next pixel
 			floorX += floorStepX;
 			floorY += floorStepY;
+
+			// update the depth buffer to include this pixel
+			screen.depthBuffer[index] = rowDistance;
 		}
 	}
 };
