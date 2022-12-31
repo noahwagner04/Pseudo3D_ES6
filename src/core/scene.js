@@ -199,7 +199,6 @@ function checkWorldMap(worldMap) {
 
 // checks floor or ceiling objects
 function checkFloorCeiling(floor, ceiling) {
-
 	/*
 	check if the appearance and cellWidth / cellHeight attributes are valid for
 	both the ceiling and the floor
@@ -207,6 +206,13 @@ function checkFloorCeiling(floor, ceiling) {
 	for (let i = 0; i < 2; i++) {
 		let plane = i === 0 ? floor : ceiling;
 		let debugPlane = i === 0 ? "floor" : "ceiling";
+
+		// if the provided plane object is empty, disable it
+		if(JSON.stringify(plane) === "{}") {
+			plane.enabled = false;
+		} else {
+			plane.enabled = true;
+		}
 
 		// check if the appearance attribute for the floor / ceiling is valid
 		if (plane.appearance !== undefined &&

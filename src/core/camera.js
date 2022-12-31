@@ -119,6 +119,9 @@ export default class Camera {
 			direction.y
 		);
 
+		// set the height of the camera
+		this.orientation.position.z = 0.5;
+
 		// focal length of the camera
 		this.focalLength = config.focalLength || 1;
 
