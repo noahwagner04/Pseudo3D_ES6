@@ -99,8 +99,10 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			the center of the columns that we will be drawing (depends on 
 			camera height and pitch)
 			*/
-			let columnCenter = camera.pitch + screen.renderHeight *
-				(0.5 + camera.orientation.position.z / ray.distance);
+			let columnCenter =
+				(screen.renderHeight / 2 + camera.pitch) +
+				screen.renderHeight *
+				((camera.orientation.position.z - 0.5) / ray.distance);
 
 			/*
 			now calculate the two endpoints of the column (in pixel 
@@ -217,7 +219,113 @@ Renderer.renderWalls = function(screen, scene, camera) {
 };
 
 Renderer.renderFloorCeiling = function(screen, scene, camera) {
+	// get local copies of screen width and height for convenience
+	let height = screen.renderHeight;
+	let width = screen.renderWidth;
 
+	// find the start and end rows to draw floors or ceilings
+	let rowStart = scene.ceiling.enabled ? 0 : Math.floor(height / 2);
+	let rowEnd = scene.floor.enabled ? height : Math.floor(height / 2);
+
+	// get the floor appearance
+	let floorIsColor;
+	let floorAppearance = scene.floor.appearance;
+
+	// get the ceiling appearance
+	let ceilingIsColor;
+	let ceilingAppearance = scene.ceiling.appearance;
+
+	// figure out if the floor is a color or a texture
+	if (floorAppearance instanceof Color) {
+		floorIsColor = true;
+	} else if (!floorAppearance.hasLoaded) {
+		floorIsColor = true;
+	} else {
+		floorIsColor = false;
+	}
+
+	// figure out if the ceiling is a color or a texture
+	if (ceilingAppearance instanceof Color) {
+		ceilingIsColor = true;
+	} else if (!ceilingAppearance.hasLoaded) {
+		ceilingIsColor = true;
+	} else {
+		ceilingIsColor = false;
+	}
+
+	// get the initial components of the left and rightmost rays
+	let rayDirLX = camera.orientation.direction.x * camera.focalLength -
+		camera.plane.x * screen.aspectRatio;
+	let rayDirLY = camera.orientation.direction.y * camera.focalLength -
+		camera.plane.y * screen.aspectRatio;
+	let rayDirRX = camera.orientation.direction.x * camera.focalLength +
+		camera.plane.x * screen.aspectRatio;
+	let rayDirRY = camera.orientation.direction.y * camera.focalLength +
+		camera.plane.y * screen.aspectRatio;
+
+	// for every row of the screen...
+	for (let y = rowStart; y < rowEnd; y++) {
+		// where the floor and ceiling end
+		let horizon = height / 2 + camera.pitch;
+
+		// check if this pixel is on the floor or the ceiling
+		// NOTE: make a plane variable (or planeAppearance) that way we don't need to check what plane we are in the inner loop
+		let isFloor = y > horizon;
+
+		// get the y position relative to the center of the horizon
+		let p = y - horizon;
+
+		// height of camera in pixel coordinates
+		let posZ = isFloor ?
+			camera.orientation.position.z * height :
+			height - camera.orientation.position.z * height;
+
+		// horizontal distance the camera is from the current row
+		let rowDistance = Math.abs(posZ / p * camera.focalLength);
+
+		// the delta step from one horizontal pixel to the next
+		let floorStepX = (rayDirRX - rayDirLX) *
+			(rowDistance / screen.renderWidth);
+		let floorStepY = (rayDirRY - rayDirLY) *
+			(rowDistance / screen.renderWidth);
+
+		// the world coordinates for the current pixel being evaluated
+		let floorX = camera.orientation.position.x + rayDirLX * rowDistance;
+		let floorY = camera.orientation.position.y + rayDirLY * rowDistance;
+
+		// for every horizontal pixel in this row...
+		for (let x = 0; x < screen.renderWidth; x++) {
+			// the index to check the depth and pixel buffer
+			let index = x + y * width;
+
+			// if there is something obstructing this pixel, do not draw it
+			if(depthBuffer[index] <= rowDistance) {
+				// step to the right so the next pixel can be drawn correctly
+				floorX += floorStepX;
+				floorY += floorStepY;
+				continue;
+			}
+
+			// the color we will be drawing, will be decided by the code below
+			let red;
+			let green;
+			let blue;
+
+			/*
+			decide color based on world position and if we are a ceiling or 
+			floor, and what the floor / ceilings appearance is
+			*/
+
+			// draw the color
+			screen.pixels[index * 4] = red;
+			screen.pixels[index * 4 + 1] = green;
+			screen.pixels[index * 4 + 2] = blue;
+
+			// increment the world coodinate for the next pixel
+			floorX += floorStepX;
+			floorY += floorStepY;
+		}
+	}
 };
 
 Renderer.renderEntities = function(screen, scene, camera) {
