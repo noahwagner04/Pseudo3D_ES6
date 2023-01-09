@@ -369,7 +369,129 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 };
 
 Renderer.renderEntities = function(screen, scene, camera) {
+	// for every entity in the scene...
+	for (let i = 0; i < scene.gameObject.entities.length; i++) {
+		let entity = scene.gameObject.entities[i];
 
+		// get entity position relative to camera position
+		let entityX = entity.orientation.position.x -
+			camera.orientation.position.x;
+		let entityY = entity.orientation.position.y -
+			camera.orientation.position.y;
+
+		/*
+		derotate the relative position of the entity (brings entity position
+		in camera space) do this by multiplying the vector (entityX, entityY)
+		by the inverse matrix of the camera matrix (whose basis vectors are its
+		direction and camera plane)
+		*/
+		let invDet = 1 / (camera.plane.x *
+			camera.orientation.direction.y * camera.focalLength -
+			camera.orientation.direction.x * camera.focalLength *
+			camera.plane.y
+		);
+
+		// x coordinate of the entity relative to the camera's orientation
+		let transformX = invDet * (
+			camera.orientation.direction.y * camera.focalLength * entityX -
+			camera.orientation.direction.x * camera.focalLength * entityY
+		);
+
+		// y coordinate of the entity relative to the camera's orientation
+		let transformY = invDet * (
+			-camera.plane.y * entityX +
+			camera.plane.x * entityY
+		);
+
+		// don't draw the sprite if it is behind the camera
+		if (transformY < 0) continue;
+
+		// x coordinate of center of the projected entity in pixel coordinates
+		let entityScreenX = (transformX / transformY + 1) / 2 *
+			screen.renderWidth;
+
+		// height of the projected entity on screen
+		let entityHeight = (entity.size.y / transformY) * screen.renderHeight;
+
+		// width of the projected entity on screen
+		let entityWidth = (entity.size.x / transformY) * screen.renderWidth /
+			screen.aspectRatio;
+
+		// column of the screen to start drawing at
+		let drawStartX = Math.floor(entityScreenX - entityWidth / 2);
+
+		// column of the screen to stop drawing at
+		let drawEndX = Math.floor(entityScreenX + entityWidth / 2);
+
+		// row of the screen to start drawing at
+		let drawStartY = Math.floor(
+			screen.renderHeight / 2 + camera.pitch - entityHeight / 2);
+
+		// row of the screen to stop drawing at
+		let drawEndY = Math.floor(
+			screen.renderHeight / 2 + camera.pitch + entityHeight / 2);
+
+		// constrained drawStartX to bounds of screen
+		let columnStart = drawStartX;
+
+		if (columnStart < 0) {
+			columnStart = 0;
+		} else if (columnStart > screen.renderWidth) {
+			columnStart = screen.renderWidth;
+		}
+
+		// constrained drawEndX to bounds of screen
+		let columnEnd = drawEndX;
+
+		if (columnEnd < 0) {
+			columnEnd = 0;
+		} else if (columnEnd > screen.renderWidth) {
+			columnEnd = screen.renderWidth;
+		}
+
+		// whether or not the appearance is a color
+		let appearanceIsColor = false;
+
+		// check whether the appearance is a color or not
+		if (entity.appearance instanceof Color) {
+			appearanceIsColor = true;
+		} else if (entity.appearance.hasLoaded === false) {
+			appearanceIsColor = true;
+		}
+
+		for (let x = columnStart; x < columnEnd; x++) {
+			// if the appearance is a color, draw a single colored rectangle
+			if (appearanceIsColor) {
+				drawColoredColumn(
+					screenm,
+					entity.appearance,
+					transformY,
+					x,
+					drawStartY,
+					drawEndY
+				);
+				continue;
+			}
+
+			/*
+			the column of the entity texture will be used to render this column of
+			the entity
+			*/
+			let texX = Math.floor((x - drawStartX) / (drawEndX - drawStartX) *
+				entity.appearance.width);
+
+			// draw the textured column
+			drawTexturedColumn(screen,
+				entity.appearance,
+				texX,
+				transformY,
+				x,
+				drawStartY,
+				drawEndY,
+				drawEndY - drawStartY
+			);
+		}
+	}
 };
 
 Renderer.renderSkybox = function(screen, scene, camera) {
