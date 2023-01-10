@@ -292,7 +292,7 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 			camera.orientation.position.z * height;
 
 		// horizontal distance the camera is from the current row
-		let rowDistance = Math.abs(posZ / p * camera.focalLength);
+		let rowDistance = Math.abs(posZ / p);
 
 		// the delta step from one horizontal pixel to the next
 		let floorStepX = (rayDirRX - rayDirLX) *
@@ -379,29 +379,28 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		let entityY = entity.orientation.position.y -
 			camera.orientation.position.y;
 
+		// y basis vector for camera space
+		let dirX = camera.orientation.direction.x * camera.focalLength;
+		let dirY = camera.orientation.direction.y * camera.focalLength;
+
+		// x basis vector for camera space
+		let planeX = camera.plane.x * screen.aspectRatio / 2;
+		let planeY = camera.plane.y * screen.aspectRatio / 2;
+
 		/*
 		derotate the relative position of the entity (brings entity position
 		in camera space) do this by multiplying the vector (entityX, entityY)
 		by the inverse matrix of the camera matrix (whose basis vectors are its
 		direction and camera plane)
 		*/
-		let invDet = 1 / (camera.plane.x *
-			camera.orientation.direction.y * camera.focalLength -
-			camera.orientation.direction.x * camera.focalLength *
-			camera.plane.y
-		);
+		let invDet = 1 / (camera.plane.x * screen.aspectRatio / 2 * dirY -
+			dirX * camera.plane.y * screen.aspectRatio / 2);
 
 		// x coordinate of the entity relative to the camera's orientation
-		let transformX = invDet * (
-			camera.orientation.direction.y * camera.focalLength * entityX -
-			camera.orientation.direction.x * camera.focalLength * entityY
-		);
+		let transformX = invDet * (dirY * entityX - dirX * entityY);
 
 		// y coordinate of the entity relative to the camera's orientation
-		let transformY = invDet * (
-			-camera.plane.y * entityX +
-			camera.plane.x * entityY
-		);
+		let transformY = invDet * (-planeY * entityX + planeX * entityY);
 
 		// don't draw the sprite if it is behind the camera
 		if (transformY < 0) continue;
