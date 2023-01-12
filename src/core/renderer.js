@@ -409,6 +409,12 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		let entityScreenX = (transformX / transformY + 1) / 2 *
 			screen.renderWidth;
 
+		// y coordinate of center of the projected entity in pixel coordinates
+		let entityScreenY = (screen.renderHeight / 2 + camera.pitch) -
+			((entity.orientation.position.z + (entity.size.y - 1) / 2 -
+					(camera.orientation.position.z - 0.5)) /
+				transformY) * screen.renderHeight;
+
 		// height of the projected entity on screen
 		let entityHeight = (entity.size.y / transformY) * screen.renderHeight;
 
@@ -424,11 +430,11 @@ Renderer.renderEntities = function(screen, scene, camera) {
 
 		// row of the screen to start drawing at
 		let drawStartY = Math.floor(
-			screen.renderHeight / 2 + camera.pitch - entityHeight / 2);
+			entityScreenY - entityHeight / 2);
 
 		// row of the screen to stop drawing at
 		let drawEndY = Math.floor(
-			screen.renderHeight / 2 + camera.pitch + entityHeight / 2);
+			entityScreenY + entityHeight / 2);
 
 		// constrained drawStartX to bounds of screen
 		let columnStart = drawStartX;
@@ -462,7 +468,7 @@ Renderer.renderEntities = function(screen, scene, camera) {
 			// if the appearance is a color, draw a single colored rectangle
 			if (appearanceIsColor) {
 				drawColoredColumn(
-					screenm,
+					screen,
 					entity.appearance,
 					transformY,
 					x,
@@ -473,8 +479,8 @@ Renderer.renderEntities = function(screen, scene, camera) {
 			}
 
 			/*
-			the column of the entity texture will be used to render this column of
-			the entity
+			the column of the entity texture will be used to render this column
+			of the entity
 			*/
 			let texX = Math.floor((x - drawStartX) / (drawEndX - drawStartX) *
 				entity.appearance.width);
@@ -520,7 +526,7 @@ function drawColoredColumn(screen, color, depth, x, startY, endY) {
 		screen.pixels[index * 4] = color.red;
 		screen.pixels[index * 4 + 1] = color.green;
 		screen.pixels[index * 4 + 2] = color.blue;
-		screen.pixels[index * 4 + 3] = color.alpha;
+		screen.pixels[index * 4 + 3] = 255;
 
 		// add the depth to the depth buffer
 		screen.depthBuffer[index] = depth;
@@ -573,11 +579,17 @@ function drawTexturedColumn(
 		// get the index to the texture color
 		let texIndex = (texX + texY * texture.width) * 4;
 
+		// if the pixel isn't fully visible, don't draw it
+		if (texture.pixels[texIndex + 3] !== 255) {
+			texPosY += step;
+			continue;
+		}
+
 		// draw the pixel
 		screen.pixels[index * 4] = texture.pixels[texIndex];
 		screen.pixels[index * 4 + 1] = texture.pixels[texIndex + 1];
 		screen.pixels[index * 4 + 2] = texture.pixels[texIndex + 2];
-		screen.pixels[index * 4 + 3] = texture.pixels[texIndex + 3];
+		screen.pixels[index * 4 + 3] = 255;
 
 		// increment the y texture coordinate
 		texPosY += step;

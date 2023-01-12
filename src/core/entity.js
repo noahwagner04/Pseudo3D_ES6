@@ -49,6 +49,14 @@ export default class Entity {
 			}
 		}
 
+		// check if the z attribute was passed correctly
+		if (config.position !== undefined &&
+			config.position.z !== undefined &&
+			typeof config.position.z !== "number"
+		) {
+			throw new Error("Entity z position must be a number");
+		}
+
 		// check if the tint was passed properly
 		if (config.tint !== undefined && !(config.tint instanceof Color)) {
 			throw new Error("Entity tint must be of type Color");
@@ -60,7 +68,8 @@ export default class Entity {
 		// if position wasn't provided, use the origin
 		let position = config.position || {
 			x: 0,
-			y: 0
+			y: 0,
+			z: 0
 		};
 
 		// use a default direction if no direction vector was provided
@@ -76,6 +85,9 @@ export default class Entity {
 			direction.x,
 			direction.y
 		);
+
+		// set the z position of the entity
+		this.orientation.position.z = position.z;
 
 		// set the size to a default unit square if none was provided
 		this.size = config.size || {
