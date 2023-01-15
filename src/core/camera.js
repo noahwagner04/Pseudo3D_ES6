@@ -71,7 +71,7 @@ export default class Camera {
 			}
 
 			// if brightness is not provided, set it to 1
-			config.lighting.brightness = config.lighting.brightness || 1;
+			config.lighting.brightness = config.lighting.brightness || 0;
 
 			// check if the maxBrightness attribute is valid
 			if (config.lighting.maxBrightness !== undefined &&
@@ -146,7 +146,11 @@ export default class Camera {
 		this object stores settings related to the light emitted from 
 		the camera
 		*/
-		this.lighting = config.lighting;
+		this.lighting = config.lighting || {
+			brightness: 0,
+			maxBrightness: Infinity,
+			color: new Color(255, 255, 255, 255)
+		};
 	}
 
 	/*

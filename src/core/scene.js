@@ -208,7 +208,7 @@ function checkFloorCeiling(floor, ceiling) {
 		let debugPlane = i === 0 ? "floor" : "ceiling";
 
 		// if the provided plane object is empty, disable it
-		if(JSON.stringify(plane) === "{}") {
+		if (JSON.stringify(plane) === "{}") {
 			plane.enabled = false;
 		} else {
 			plane.enabled = true;
@@ -344,7 +344,8 @@ function checkLighting(lighting) {
 	}
 
 	// default to 1 if no sideLight was provided
-	lighting.sideLight = lighting.sideLight || 1;
+	lighting.sideLight = lighting.sideLight === undefined ? 1 : 
+		lighting.sideLight;
 
 	// check if ambientLight is valid
 	if (lighting.ambientLight !== undefined &&

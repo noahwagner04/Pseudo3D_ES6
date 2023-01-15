@@ -20,8 +20,8 @@ export default class Color {
 
 		// set the valid inputs
 		this.red = r;
-		this.blue = g;
-		this.green = b;
+		this.green = g;
+		this.blue = b;
 		this.alpha = a;
 	}
 }
