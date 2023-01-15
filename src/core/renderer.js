@@ -136,6 +136,15 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				continue;
 			}
 
+			// calculate the lighting scalar for each color field
+			let lighting = scene.lighting.enabled ?
+				calculateLightingScalar(
+					scene,
+					camera,
+					ray.distance,
+					ray.side
+				) : 1;
+
 			// try to access the pixels of the appearance
 			let drawTexture = wallInfo.appearance.hasLoaded;
 
@@ -164,7 +173,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 					ray.distance,
 					x,
 					drawStart,
-					drawEnd
+					drawEnd,
+					lighting
 				);
 
 			} else {
@@ -211,7 +221,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 					x,
 					drawStart,
 					trueDrawEnd,
-					drawEnd - drawStart
+					drawEnd - drawStart,
+					lighting
 				);
 			}
 		}
@@ -304,6 +315,11 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 		let floorX = camera.orientation.position.x + rayDirLX * rowDistance;
 		let floorY = camera.orientation.position.y + rayDirLY * rowDistance;
 
+		// calculate the lighting of the row to be drawn
+		let lighting = scene.lighting.enabled ?
+			calculateLightingScalar(scene, camera, rowDistance) :
+			1;
+
 		// for every horizontal pixel in this row...
 		for (let x = 0; x < screen.renderWidth; x++) {
 			// the index to check the depth and pixel buffer
@@ -328,10 +344,10 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 				if the appearance is a color, simply set red, green, blue, 
 				alpha to appearance attributes
 				*/
-				red = appearance.red;
-				green = appearance.green;
-				blue = appearance.blue;
-				alpha = appearance.alpha;
+				red = Math.floor(appearance.red * lighting.r);
+				green = Math.floor(appearance.green * lighting.g);
+				blue = Math.floor(appearance.blue * lighting.b);
+				alpha = 255;
 			} else {
 				/*
 				if the appearance is a texture, get the texture coordinates of 
@@ -346,10 +362,10 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 				let texIndex = (tx + ty * appearance.width) * 4;
 
 				// get the color from the pixels array
-				red = appearance.pixels[texIndex];
-				green = appearance.pixels[texIndex + 1];
-				blue = appearance.pixels[texIndex + 2];
-				alpha = appearance.pixels[texIndex + 3];
+				red = Math.floor(appearance.pixels[texIndex] * lighting.r);
+				green = Math.floor(appearance.pixels[texIndex + 1] * lighting.g);
+				blue = Math.floor(appearance.pixels[texIndex + 2] * lighting.b);
+				alpha = 255;
 			}
 
 			// draw the color
@@ -464,6 +480,11 @@ Renderer.renderEntities = function(screen, scene, camera) {
 			appearanceIsColor = true;
 		}
 
+		// calculate the lighting scalar for the sprite
+		let lighting = scene.lighting.enabled ?
+			calculateLightingScalar(scene, camera, transformY) :
+			1;
+
 		for (let x = columnStart; x < columnEnd; x++) {
 			// if the appearance is a color, draw a single colored rectangle
 			if (appearanceIsColor) {
@@ -473,7 +494,8 @@ Renderer.renderEntities = function(screen, scene, camera) {
 					transformY,
 					x,
 					drawStartY,
-					drawEndY
+					drawEndY,
+					lighting
 				);
 				continue;
 			}
@@ -493,7 +515,8 @@ Renderer.renderEntities = function(screen, scene, camera) {
 				x,
 				drawStartY,
 				drawEndY,
-				drawEndY - drawStartY
+				drawEndY - drawStartY,
+				lighting
 			);
 		}
 	}
@@ -505,8 +528,43 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 
 export default Renderer;
 
+function calculateLightingScalar(scene, camera, depth, side) {
+	// calculate the lighting scalar for each color field
+	let lighting = camera.lighting.brightness / depth;
+
+	// clamp the lighting to not go past the maximum brightness
+	if (lighting > camera.lighting.maxBrightness) {
+		lighting = camera.lighting.maxBrightness;
+	}
+
+	// don't let the minimum brightness go passed ambient lighting
+	if (lighting < scene.lighting.ambientLight) {
+		lighting = scene.lighting.ambientLight;
+	}
+
+	// calculate the side light of walls
+	if (side === 1) {
+		lighting -= scene.lighting.sideLight;
+	}
+
+	// return an object containing lighting scalars for each rgb channel
+	return {
+		r: lighting * camera.lighting.color.red / 255,
+		g: lighting * camera.lighting.color.green / 255,
+		b: lighting * camera.lighting.color.blue / 255
+	};
+}
+
 // draws a vertical line of one color
-function drawColoredColumn(screen, color, depth, x, startY, endY) {
+function drawColoredColumn(
+	screen,
+	color,
+	depth,
+	x,
+	startY,
+	endY,
+	lighting,
+) {
 
 	/*
 	constrain start and end coordinates to be within the bounds of the screen
@@ -523,9 +581,12 @@ function drawColoredColumn(screen, color, depth, x, startY, endY) {
 		if (screen.depthBuffer[index] < depth) continue;
 
 		// draw the pixel
-		screen.pixels[index * 4] = color.red;
-		screen.pixels[index * 4 + 1] = color.green;
-		screen.pixels[index * 4 + 2] = color.blue;
+		screen.pixels[index * 4] =
+			Math.floor(color.red * lighting.r);
+		screen.pixels[index * 4 + 1] =
+			Math.floor(color.green * lighting.g);
+		screen.pixels[index * 4 + 2] =
+			Math.floor(color.blue * lighting.b);
 		screen.pixels[index * 4 + 3] = 255;
 
 		// add the depth to the depth buffer
@@ -534,7 +595,6 @@ function drawColoredColumn(screen, color, depth, x, startY, endY) {
 }
 
 // draws a vertical slice of the texture provided at the given coordinates
-// NOTE: make fully transparent pixels not affect the depth buffer
 function drawTexturedColumn(
 	screen,
 	texture,
@@ -543,7 +603,8 @@ function drawTexturedColumn(
 	x,
 	startY,
 	endY,
-	lineHeight
+	lineHeight,
+	lighting,
 ) {
 	// how much to increase the texture coordinate per screen pixel
 	let step = texture.height / lineHeight;
@@ -586,9 +647,12 @@ function drawTexturedColumn(
 		}
 
 		// draw the pixel
-		screen.pixels[index * 4] = texture.pixels[texIndex];
-		screen.pixels[index * 4 + 1] = texture.pixels[texIndex + 1];
-		screen.pixels[index * 4 + 2] = texture.pixels[texIndex + 2];
+		screen.pixels[index * 4] =
+			Math.floor(texture.pixels[texIndex] * lighting.r);
+		screen.pixels[index * 4 + 1] =
+			Math.floor(texture.pixels[texIndex + 1] * lighting.g);
+		screen.pixels[index * 4 + 2] =
+			Math.floor(texture.pixels[texIndex + 2] * lighting.b);
 		screen.pixels[index * 4 + 3] = 255;
 
 		// increment the y texture coordinate
