@@ -328,7 +328,7 @@ function checkSkybox(skybox) {
 	if no angle was provided, set it to 2PI (the amount of radians untill the
 	skybox starts to repeat)
 	*/
-	skybox.repeatAngle = skybox.repeatAngle || 360;
+	skybox.repeatAngle = skybox.repeatAngle || 2 * Math.PI;
 
 	// set a flag if we should render the skybox or not
 	skybox.enabled = !!(skybox.appearance.alpha);

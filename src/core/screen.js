@@ -89,6 +89,16 @@ export default class Screen {
 		}
 	}
 
+	// sets the pixels array to the current state of the canvas screen
+	setPixels() {
+		this.pixels = this.drawingContext.getImageData(
+			0,
+			0,
+			this.renderWidth,
+			this.renderHeight
+		).data;
+	}
+
 	// draws the pixels data array to the screen
 	update() {
 		let tempImageData = new ImageData(
