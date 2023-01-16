@@ -299,8 +299,7 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 		*/
 		let posZ = isFloor ?
 			camera.orientation.position.z * height :
-			height * scene.ceiling.height -
-			camera.orientation.position.z * height;
+			height * (scene.ceiling.height - camera.orientation.position.z);
 
 		// horizontal distance the camera is from the current row
 		let rowDistance = Math.abs(posZ / p);
@@ -522,8 +521,49 @@ Renderer.renderEntities = function(screen, scene, camera) {
 	}
 };
 
+/*
+renders a skybox for the raycast world, this function should be executed
+before any of the others 
+*/
 Renderer.renderSkybox = function(screen, scene, camera) {
 
+	// grab the appearance of the skybox
+	let appearance = scene.skybox.appearance;
+
+	// set the appearance to a temporary color of the texture
+	if (appearance.hasLoaded === false) {
+		appearance = appearance.temporaryColor;
+	}
+
+	// if the skybox appearance is a color, draw a rectangle of that color
+	if (scene.skybox.appearance instanceof Color) {
+		// save the current state of the context
+		screen.drawingContext.save();
+
+		// set the fill style to the color of the skybox
+		screen.drawingContext.fillStyle = `rgb(
+			${appearance.red}, 
+			${appearance.green}, 
+			${appearance.blue}
+		)`;
+
+		// draw the rectangle
+		screen.drawingContext.fillRect(
+			0, 
+			0, 
+			screen.renderWidth, 
+			screen.renderHeight / 2 + camera.pitch
+		);
+
+		/*
+		update the pixel buffer of the screen from the current state of the 
+		canvas
+		*/
+		screen.setPixels();
+
+		// put the drawing context back to how it was before drawing the skybox
+		screen.drawingContext.restore();
+	}
 };
 
 export default Renderer;
