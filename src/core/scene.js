@@ -317,19 +317,6 @@ function checkSkybox(skybox) {
 	// if no appearance was provided, use a transparent color
 	skybox.appearance = skybox.appearance || new Color(0, 0, 0, 0);
 
-	// check if repeatAfterAngle is valid
-	if (skybox.repeatAngle !== undefined &&
-		typeof skybox.repeatAngle !== "number"
-	) {
-		throw new Error("Scene skybox.repeatAngle must be a number");
-	}
-
-	/*
-	if no angle was provided, set it to 2PI (the amount of radians untill the
-	skybox starts to repeat)
-	*/
-	skybox.repeatAngle = skybox.repeatAngle || 2 * Math.PI;
-
 	// set a flag if we should render the skybox or not
 	skybox.enabled = !!(skybox.appearance.alpha);
 }
@@ -337,15 +324,15 @@ function checkSkybox(skybox) {
 // checks lighting object
 function checkLighting(lighting) {
 	// check if provided side light is valid
-	if (lighting.sideLight !== undefined &&
-		typeof lighting.sideLight !== "number"
+	if (lighting.sideShade !== undefined &&
+		typeof lighting.sideShade !== "number"
 	) {
-		throw new Error("Scene lighting.sideLight must be a number");
+		throw new Error("Scene lighting.sideShade must be a number");
 	}
 
-	// default to 1 if no sideLight was provided
-	lighting.sideLight = lighting.sideLight === undefined ? 1 : 
-		lighting.sideLight;
+	// default to 1 if no sideShade was provided
+	lighting.sideShade = lighting.sideShade === undefined ? 0 : 
+		lighting.sideShade;
 
 	// check if ambientLight is valid
 	if (lighting.ambientLight !== undefined &&
@@ -362,6 +349,6 @@ function checkLighting(lighting) {
 	set a flag indecating whether or not lighting is enabled (if both ambient
 	and side light are 1 then disable lighting)
 	*/
-	lighting.enabled = !((lighting.sideLight === 1) &&
+	lighting.enabled = !((lighting.sideShade === 0) &&
 		(lighting.ambientLight === 1));
 }

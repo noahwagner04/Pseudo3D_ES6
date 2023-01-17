@@ -592,9 +592,8 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 		var angle = camera.orientation.direction.getAngleBtw(new Vector(1, 0));
 		if (camera.orientation.direction.y > 0) angle = 2 * Math.PI - angle;
 
-		// stretch the image depending on the repeat angle
-		let skyboxWidth = screen.renderWidth *
-			scene.skybox.repeatAngle * 2 / Math.PI;
+		// stretch the image to align with our rendered world
+		let skyboxWidth = screen.renderWidth * 4;
 
 		/*
 		calculate the starting column to draw the skybox (changes depending on 
@@ -671,7 +670,7 @@ function calculateLightingScalar(scene, camera, depth, side) {
 
 	// calculate the side light of walls
 	if (side === 1) {
-		lighting -= scene.lighting.sideLight;
+		lighting -= scene.lighting.sideShade;
 	}
 
 	// return an object containing lighting scalars for each rgb channel
