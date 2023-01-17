@@ -583,12 +583,6 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 			horizon
 		);
 
-		/*
-		update the pixel buffer of the screen from the current state of the 
-		canvas
-		*/
-		screen.setPixels();
-
 		// put the drawing context back to how it was before drawing the skybox
 		screen.drawingContext.restore();
 	} else if (appearance instanceof Texture) {
@@ -650,10 +644,13 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 
 		// put the drawing context back to how it was before drawing the skybox
 		screen.drawingContext.restore();
-
-		// update the pixel buffer
-		screen.setPixels();
 	}
+
+	/*
+	update the pixel buffer of the screen to the current state of the 
+	canvas
+	*/
+	screen.setPixels();
 };
 
 export default Renderer;
