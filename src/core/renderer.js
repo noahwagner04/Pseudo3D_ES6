@@ -8,6 +8,10 @@ renderWalls(), renderFloorCeiling(), renderEntities(), renderSkybox().
 import Ray from "/src/core/ray.js";
 import Texture from "/src/resources/texture.js";
 import Color from "/src/resources/color.js";
+import Vector from "/src/math/vector.js";
+import {
+	remap
+} from "/src/math/math.js";
 
 let Renderer = {};
 
@@ -143,7 +147,11 @@ Renderer.renderWalls = function(screen, scene, camera) {
 					camera,
 					ray.distance,
 					ray.side
-				) : 1;
+				) : {
+					r: 1,
+					g: 1,
+					b: 1
+				};
 
 			// try to access the pixels of the appearance
 			let drawTexture = wallInfo.appearance.hasLoaded;
@@ -241,6 +249,14 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 	let rowStart = scene.ceiling.enabled ? 0 : horizon;
 	let rowEnd = scene.floor.enabled ? height : horizon;
 
+	// bound rowStart to be wihtin the screen height dimentions
+	if (rowStart > height) rowStart = height;
+	if (rowStart < 0) rowStart = 0;
+
+	// bound rowEnd to be wihtin the screen height dimentions
+	if (rowEnd > height) rowEnd = height;
+	if (rowEnd < 0) rowEnd = 0;
+
 	// a local refference to the appearance of the floor / ceiling
 	let floorAppearance = scene.floor.appearance;
 	let ceilingAppearance = scene.ceiling.appearance;
@@ -304,6 +320,9 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 		// horizontal distance the camera is from the current row
 		let rowDistance = Math.abs(posZ / p);
 
+		// don't use Infinity for row distance
+		rowDistance = rowDistance === Infinity ? 1e3 : rowDistance;
+
 		// the delta step from one horizontal pixel to the next
 		let floorStepX = (rayDirRX - rayDirLX) *
 			(rowDistance / screen.renderWidth);
@@ -316,8 +335,11 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 
 		// calculate the lighting of the row to be drawn
 		let lighting = scene.lighting.enabled ?
-			calculateLightingScalar(scene, camera, rowDistance) :
-			1;
+			calculateLightingScalar(scene, camera, rowDistance) : {
+				r: 1,
+				g: 1,
+				b: 1
+			};
 
 		// for every horizontal pixel in this row...
 		for (let x = 0; x < screen.renderWidth; x++) {
@@ -481,8 +503,11 @@ Renderer.renderEntities = function(screen, scene, camera) {
 
 		// calculate the lighting scalar for the sprite
 		let lighting = scene.lighting.enabled ?
-			calculateLightingScalar(scene, camera, transformY) :
-			1;
+			calculateLightingScalar(scene, camera, transformY) : {
+				r: 1,
+				g: 1,
+				b: 1
+			};
 
 		for (let x = columnStart; x < columnEnd; x++) {
 			// if the appearance is a color, draw a single colored rectangle
@@ -535,8 +560,11 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 		appearance = appearance.temporaryColor;
 	}
 
+	// calculate the end of our skybox (where the skybox meets the ground)
+	let horizon = screen.renderHeight / 2 + camera.pitch;
+
 	// if the skybox appearance is a color, draw a rectangle of that color
-	if (scene.skybox.appearance instanceof Color) {
+	if (appearance instanceof Color) {
 		// save the current state of the context
 		screen.drawingContext.save();
 
@@ -549,10 +577,10 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 
 		// draw the rectangle
 		screen.drawingContext.fillRect(
-			0, 
-			0, 
-			screen.renderWidth, 
-			screen.renderHeight / 2 + camera.pitch
+			0,
+			0,
+			screen.renderWidth,
+			horizon
 		);
 
 		/*
@@ -563,6 +591,68 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 
 		// put the drawing context back to how it was before drawing the skybox
 		screen.drawingContext.restore();
+	} else if (appearance instanceof Texture) {
+		// draw an image for the skybox
+
+		// get the current angle of the camera
+		var angle = camera.orientation.direction.getAngleBtw(new Vector(1, 0));
+		if (camera.orientation.direction.y > 0) angle = 2 * Math.PI - angle;
+
+		// stretch the image depending on the repeat angle
+		let skyboxWidth = screen.renderWidth *
+			scene.skybox.repeatAngle * 2 / Math.PI;
+
+		/*
+		calculate the starting column to draw the skybox (changes depending on 
+		camera rotation)
+		*/
+		let startX = remap(angle, 0, 2 * Math.PI, 0, skyboxWidth);
+		
+		// draw the first image that will go off screen to the right
+		if(startX < screen.renderWidth) {
+			screen.drawingContext.drawImage(
+				appearance.htmlImageElement, 
+				startX, 
+				horizon - appearance.height, 
+				skyboxWidth,
+				appearance.height
+			);
+		}
+
+		/*
+		draw the second image that will start off screen to the left and end at
+		the start of the first image
+		*/
+		screen.drawingContext.drawImage(
+			appearance.htmlImageElement, 
+			startX - skyboxWidth, 
+			horizon - appearance.height, 
+			skyboxWidth,
+			appearance.height
+		);
+
+		// save the current state of the context
+		screen.drawingContext.save();
+
+		// color of rectangle
+		screen.drawingContext.fillStyle = `rgba(
+			0, 
+			0, 
+			0,
+			${1 - scene.lighting.ambientLight}
+		)`;
+
+		/*
+		draw a partial alpha black rectangle to get skybox same brightness as
+		ambient lighting in scene
+		*/
+		screen.drawingContext.fillRect(0, 0, screen.renderWidth, horizon);
+
+		// put the drawing context back to how it was before drawing the skybox
+		screen.drawingContext.restore();
+
+		// update the pixel buffer
+		screen.setPixels();
 	}
 };
 
