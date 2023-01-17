@@ -38,7 +38,11 @@ export default class Screen {
 
 		// initialize the canvas element
 		this.htmlCanvasElement = document.createElement("canvas");
-		this.drawingContext = this.htmlCanvasElement.getContext("2d");
+		this.drawingContext = this.htmlCanvasElement.getContext(
+			"2d", {
+				willReadFrequently: true
+			}
+		);
 
 		// set the width and height of the canvas
 		this.htmlCanvasElement.width = this.renderWidth;
