@@ -38,6 +38,15 @@ export default class Screen {
 
 		// initialize the canvas element
 		this.htmlCanvasElement = document.createElement("canvas");
+
+		// check if the browser supports the canvas element
+		if (!window.CanvasRenderingContext2D) {
+			throw new Error(
+				"Screen failed to initialize because the Canvas element is " + 
+				"not supported on this browser"
+			);
+		}
+
 		this.drawingContext = this.htmlCanvasElement.getContext(
 			"2d", {
 				willReadFrequently: true
