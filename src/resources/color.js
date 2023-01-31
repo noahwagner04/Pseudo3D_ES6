@@ -3,7 +3,7 @@ Basic color class used for rendering walls or sprites that are a constant
 color (or used as a temporary color before textures load)
 */
 
-export default class Color {
+class Color {
 	// constructor takes 4 integer inputs, red, blue, green, alpha
 	constructor(r, g, b, a) {
 		// check if inputs are integers, and are within the range 0 - 255
@@ -25,3 +25,5 @@ export default class Color {
 		this.alpha = a;
 	}
 }
+
+export { Color };

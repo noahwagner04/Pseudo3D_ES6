@@ -5,13 +5,14 @@ stand alone to render only a portion of the world. These functions include:
 renderWalls(), renderFloorCeiling(), renderEntities(), renderSkybox().
 */
 
-import Ray from "/src/core/ray.js";
-import Texture from "/src/resources/texture.js";
-import Color from "/src/resources/color.js";
-import Vector from "/src/math/vector.js";
-import {
-	remap
-} from "/src/math/math.js";
+import { Ray } from "/src/core/ray.js";
+import { Texture } from "/src/resources/texture.js";
+import { Color } from "/src/resources/color.js";
+import { Vector } from "/src/math/vector.js";
+import { Screen } from "/src/core/screen.js";
+import { Camera } from "/src/core/camera.js";
+import { Scene } from "/src/core/scene.js";
+import { Math as pMath } from "/src/math/math.js";
 
 let Renderer = {};
 
@@ -599,14 +600,14 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 		calculate the starting column to draw the skybox (changes depending on 
 		camera rotation)
 		*/
-		let startX = remap(angle, 0, 2 * Math.PI, 0, skyboxWidth);
-		
+		let startX = pMath.remap(angle, 0, 2 * Math.PI, 0, skyboxWidth);
+
 		// draw the first image that will go off screen to the right
-		if(startX < screen.renderWidth) {
+		if (startX < screen.renderWidth) {
 			screen.drawingContext.drawImage(
-				appearance.htmlImageElement, 
-				startX, 
-				horizon - appearance.height, 
+				appearance.htmlImageElement,
+				startX,
+				horizon - appearance.height,
 				skyboxWidth,
 				appearance.height
 			);
@@ -617,9 +618,9 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 		the start of the first image
 		*/
 		screen.drawingContext.drawImage(
-			appearance.htmlImageElement, 
-			startX - skyboxWidth, 
-			horizon - appearance.height, 
+			appearance.htmlImageElement,
+			startX - skyboxWidth,
+			horizon - appearance.height,
 			skyboxWidth,
 			appearance.height
 		);
@@ -652,7 +653,59 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 	screen.setPixels();
 };
 
-export default Renderer;
+// renders every part of the scene (walls, floors, sprites, etc.)
+Renderer.render = function(screen, scene, camera) {
+
+	// check if the screen received is the valid type
+	if (!(screen instanceof Screen)) {
+		throw new Error(
+			"Failed to render scene: first argument passed to " + 
+			"Renderer.render was not an instance of Pseudo3d.Screen"
+		);
+	}
+
+	// check if the scene received is the valid type
+	if (!(scene instanceof Scene)) {
+		throw new Error(
+			"Failed to render scene: second argument passed to " + 
+			"Renderer.render was not an instance of Pseudo3d.Scene"
+		);
+	}
+
+	// check if the camera received is the valid type
+	if (!(camera instanceof Camera)) {
+		throw new Error(
+			"Failed to render scene: third argument passed to " + 
+			"Renderer.render was not an instance of Pseudo3d.Camera"
+		);
+	}
+
+	// only render the skybox if it is enabled
+	if (scene.skybox.enabled) {
+		Renderer.renderSkybox(screen, scene, camera);
+	}
+
+	/*
+	only render the walls if there is a provided world map array and cellInfo 
+	object 
+	*/
+	if (scene.worldMap.data.length !== 0 &&
+		Object.keys(scene.worldMap.cellInfo).length !== 0) {
+		Renderer.renderWalls(screen, scene, camera);
+	}
+
+	// only render entities if there is at least one entity
+	if (scene.gameObject.entities.length !== 0) {
+		Renderer.renderEntities(screen, scene, camera);
+	}
+
+	// only render the floor and ceiling if at least one is enabled
+	if (scene.floor.enabled === true || scene.ceiling.enabled === true) {
+		Renderer.renderFloorCeiling(screen, scene, camera);
+	}
+};
+
+export { Renderer };
 
 function calculateLightingScalar(scene, camera, depth, side) {
 	// calculate the lighting scalar for each color field

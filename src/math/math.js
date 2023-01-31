@@ -2,12 +2,13 @@
 This file is meant to hold any general handy math equations that will be used 
 in the core of the engine.
 */
+let Math = {};
 
 /*
 remaps a number from the range s1-e1 to the new range s2-e2, expects 
 all inputs to be numbers
 */
-export function remap(num, s1, e1, s2, e2) {
+Math.remap = function(num, s1, e1, s2, e2) {
 	// input type checking
 	if (typeof num !== "number" ||
 		typeof s1 !== "number" ||
@@ -32,7 +33,7 @@ constrains a number to be within the range min-max
 expects all integer inputs, returns x if it lies within the range,
 otherwise return min or max depending on if x is below or above the range
 */
-export function constrain(num, min, max) {
+Math.constrain = function(num, min, max) {
 	// input type checking
 	if (typeof num !== "number" ||
 		typeof min !== "number" ||
@@ -42,3 +43,7 @@ export function constrain(num, min, max) {
 	}
 	return Math.min(Math.max(x, min), max);
 }
+
+export {
+	Math
+};

@@ -4,7 +4,7 @@ z component is used to represent object height (components x and y form a
 horizontal plane)
 */
 
-export default class Vector {
+class Vector {
 
 	// constructor expects all number inputs
 	constructor(x, y, z) {
@@ -333,3 +333,5 @@ export default class Vector {
 		return vector instanceof Vector ? true : false;
 	}
 }
+
+export { Vector };

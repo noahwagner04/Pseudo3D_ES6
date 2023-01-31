@@ -5,9 +5,9 @@ specified; however, the engine will set raylegnth to 1 for certain rendering
 purposes.
 */
 
-import Scene from "/src/core/scene.js";
+import { Scene } from "/src/core/scene.js";
 
-export default class Ray {
+class Ray {
 	// checks if inputs are the right type, then calls init
 	constructor(scene, startX, startY, dirX, dirY, rayLength) {
 
@@ -168,3 +168,5 @@ export default class Ray {
 		}
 	}
 }
+
+export { Ray };

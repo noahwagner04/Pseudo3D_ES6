@@ -1,6 +1,6 @@
 // This class is an html canvas wrapper that makes pixel manipulation simpler.
 
-export default class Screen {
+class Screen {
 	// arguments include screen dimentions and resolution
 	constructor(width, height, quality) {
 		// check if width input is valid
@@ -121,3 +121,5 @@ export default class Screen {
 		this.drawingContext.putImageData(tempImageData, 0, 0);
 	}
 }
+
+export { Screen };

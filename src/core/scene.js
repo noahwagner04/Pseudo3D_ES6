@@ -4,11 +4,11 @@ texture settings, objects in the scene, skybox texture, and lighting
 information
 */
 
-import Color from "/src/resources/color.js";
-import Texture from "/src/resources/texture.js";
-import Entity from "/src/core/entity.js";
+import { Color } from "/src/resources/color.js";
+import { Texture } from "/src/resources/texture.js";
+import { Entity } from "/src/core/entity.js";
 
-export default class Scene {
+class Scene {
 	/*
 	config holds sub config objects which include: floor, ceiling, worldMap,
 	gameObject, skybox, lighting
@@ -97,20 +97,22 @@ export default class Scene {
 
 }
 
+export { Scene };
+
 // ----input handling functions, each modify the given object to be valid-----
 
 // checks worldMap object
 function checkWorldMap(worldMap) {
 	// check if worldMap.width is valid
 	if (worldMap.width !== undefined &&
-		(!Number.isInteger(worldMap.width) || worldMap.width <= 0)
+		(!Number.isInteger(worldMap.width) || worldMap.width < 0)
 	) {
 		throw new Error("Scene worldMap.width must be a positive integer");
 	}
 
 	// check if worldMap.height is valid
 	if (worldMap.height !== undefined &&
-		(!Number.isInteger(worldMap.height) || worldMap.height <= 0)
+		(!Number.isInteger(worldMap.height) || worldMap.height < 0)
 	) {
 		throw new Error("Scene worldMap.height must be a positive integer");
 	}
@@ -314,11 +316,17 @@ function checkSkybox(skybox) {
 		);
 	}
 
-	// if no appearance was provided, use a transparent color
-	skybox.appearance = skybox.appearance || new Color(0, 0, 0, 0);
-
-	// set a flag if we should render the skybox or not
-	skybox.enabled = !!(skybox.appearance.alpha);
+	/*
+	if the skybox appearance isn't provided, set enabled flag to false and 
+	default to a transparent black color
+	*/
+	if(skybox.appearance === undefined) {
+		skybox.appearance = new Color(0, 0, 0, 0);
+		skybox.enabled = false;
+	} else {
+		// if we received a valid input, set enabled flag to true
+		skybox.enabled = true;
+	}
 }
 
 // checks lighting object

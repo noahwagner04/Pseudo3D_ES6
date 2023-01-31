@@ -6,11 +6,11 @@ This must be done in order to make the camera plane always perpendicular to
 the direction vector.
 */
 
-import Orientation from "/src/math/orientation.js";
-import Color from "/src/resources/color.js";
-import Vector from "/src/math/vector.js";
+import { Orientation } from "/src/math/orientation.js";
+import { Color } from "/src/resources/color.js";
+import { Vector } from "/src/math/vector.js";
 
-export default class Camera {
+class Camera {
 	/*
 	recognized config attributes are position, direction, focalLength, pitch,
 	and a lighting settings object
@@ -243,3 +243,5 @@ export default class Camera {
 		return this;
 	}
 }
+
+export { Camera };

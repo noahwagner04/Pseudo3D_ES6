@@ -5,9 +5,9 @@ loading. Textures are used to hold pixel information for sprites, walls, the
 ceiling and floor, and skybox textures.
 */
 
-import Color from "/src/resources/color.js";
+import { Color } from "/src/resources/color.js";
 
-export default class Texture {
+class Texture {
 	/*
 	Constructor takes a config object argument, recognized attributes are:
 	path, temporaryColor, width, and height. 
@@ -135,3 +135,5 @@ export default class Texture {
 		this.htmlImageElement.src = this.path;
 	}
 }
+
+export { Texture };

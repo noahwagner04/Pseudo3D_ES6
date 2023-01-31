@@ -3,11 +3,11 @@ this class represents any physical object that will be in the raycast world
 any user made item / character class should use this class or derive from it
 */
 
-import Texture from "/src/resources/texture.js";
-import Color from "/src/resources/color.js";
-import Orientation from "/src/math/orientation.js";
+import { Texture } from "/src/resources/texture.js";
+import { Color } from "/src/resources/color.js";
+import { Orientation } from "/src/math/orientation.js";
 
-export default class Entity {
+class Entity {
 	/*
 	config holds the appearance (texture or color), position and direction, 
 	and the size of the entity (in world coordinates)
@@ -106,3 +106,5 @@ export default class Entity {
 		this.hasPartialAlpha = !!config.hasPartialAlpha;
 	}
 }
+
+export { Entity };
