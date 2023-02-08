@@ -587,9 +587,9 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 
 		// set the fill style to the color of the skybox
 		screen.drawingContext.fillStyle = `rgb(
-			${appearance.red}, 
-			${appearance.green}, 
-			${appearance.blue}
+			${appearance.red * scene.lighting.ambientLight}, 
+			${appearance.green * scene.lighting.ambientLight}, 
+			${appearance.blue * scene.lighting.ambientLight}
 		)`;
 
 		// draw the rectangle
@@ -602,6 +602,9 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 
 		// put the drawing context back to how it was before drawing the skybox
 		screen.drawingContext.restore();
+
+		// update the screen's pixels array
+		screen.setPixels();
 	} else if (appearance instanceof Texture) {
 		// draw an image for the skybox
 
