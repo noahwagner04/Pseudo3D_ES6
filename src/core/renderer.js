@@ -5,14 +5,30 @@ stand alone to render only a portion of the world. These functions include:
 renderWalls(), renderFloorCeiling(), renderEntities(), renderSkybox().
 */
 
-import { Ray } from "/src/core/ray.js";
-import { Texture } from "/src/resources/texture.js";
-import { Color } from "/src/resources/color.js";
-import { Vector } from "/src/math/vector.js";
-import { Screen } from "/src/core/screen.js";
-import { Camera } from "/src/core/camera.js";
-import { Scene } from "/src/core/scene.js";
-import { Math as pMath } from "/src/math/math.js";
+import {
+	Ray
+} from "/src/core/ray.js";
+import {
+	Texture
+} from "/src/resources/texture.js";
+import {
+	Color
+} from "/src/resources/color.js";
+import {
+	Vector
+} from "/src/math/vector.js";
+import {
+	Screen
+} from "/src/core/screen.js";
+import {
+	Camera
+} from "/src/core/camera.js";
+import {
+	Scene
+} from "/src/core/scene.js";
+import {
+	Math as pMath
+} from "/src/math/math.js";
 
 let Renderer = {};
 
@@ -562,7 +578,7 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 	}
 
 	// calculate the end of our skybox (where the skybox meets the ground)
-	let horizon = screen.renderHeight / 2 + camera.pitch;
+	let horizon = Math.floor(screen.renderHeight / 2 + camera.pitch);
 
 	// if the skybox appearance is a color, draw a rectangle of that color
 	if (appearance instanceof Color) {
@@ -590,76 +606,115 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 		// draw an image for the skybox
 
 		// get the current angle of the camera
-		var angle = camera.orientation.direction.getAngleBtw(new Vector(1, 0));
-		if (camera.orientation.direction.y > 0) angle = 2 * Math.PI - angle;
+		let angle = camera.orientation.direction.getAngleBtw(new Vector(1, 0));
 
-		// stretch the image to align with our rendered world
-		let skyboxWidth = screen.renderWidth * 4;
+		// make the angle wrap around to be in the range 0 - 2PI
+		if (camera.orientation.direction.y < 0) angle = 2 * Math.PI - angle;
+
+		// angle between the direction vector and the camera plane
+		let FOVAngle = Math.atan((screen.aspectRatio * 0.5) /
+			camera.focalLength);
 
 		/*
-		calculate the starting column to draw the skybox (changes depending on 
-		camera rotation)
+		the angle between the direction and scaled plane vector for any given 
+		column of the screen
 		*/
-		let startX = pMath.remap(angle, 0, 2 * Math.PI, 0, skyboxWidth);
+		let sampleAngle = angle - FOVAngle;
 
-		// draw the first image that will go off screen to the right
-		if (startX < screen.renderWidth) {
-			screen.drawingContext.drawImage(
-				appearance.htmlImageElement,
-				startX,
-				horizon - appearance.height,
-				skyboxWidth,
-				appearance.height
-			);
+		// have the angle wrap around to 2PI if it goes below 0
+		if (sampleAngle < 0) {
+			sampleAngle = Math.PI * 2 + sampleAngle;
 		}
 
 		/*
-		draw the second image that will start off screen to the left and end at
-		the start of the first image
+		the change in angle for each increase in column (it is a function 
+		of the plane length for each column)
 		*/
-		screen.drawingContext.drawImage(
-			appearance.htmlImageElement,
-			startX - skyboxWidth,
-			horizon - appearance.height,
-			skyboxWidth,
-			appearance.height
-		);
+		let dTheta;
 
-		// save the current state of the context
-		screen.drawingContext.save();
+		// how much to change the length of the plane per column
+		let dx = screen.aspectRatio / screen.renderWidth;
 
-		// color of rectangle
-		screen.drawingContext.fillStyle = `rgba(
-			0, 
-			0, 
-			0,
-			${1 - scene.lighting.ambientLight}
-		)`;
+		// the length of the plane for the left-most column of the screen
+		let plane = screen.aspectRatio / 2;
 
-		/*
-		draw a partial alpha black rectangle to get skybox same brightness as
-		ambient lighting in scene
-		*/
-		screen.drawingContext.fillRect(0, 0, screen.renderWidth, horizon);
+		// for every column of the screen...
+		for (let c = 0; c < screen.renderWidth; c++) {
 
-		// put the drawing context back to how it was before drawing the skybox
-		screen.drawingContext.restore();
+			/*
+			calculate vertical stretch factor (this value represnts the 
+			normalized perpendicular distance to an edge of the skybox 
+			cylinder)
+			*/
+			let dist = camera.focalLength /
+				Math.sqrt(plane ** 2 + camera.focalLength ** 2);
+
+			// the modified height of the column we are going to draw
+			let columnHeight = Math.floor(camera.focalLength *
+				appearance.height / dist);
+
+			// starting y coordinate of the column to draw
+			let drawStartY = horizon - columnHeight;
+
+			// remap the angle to a column of our skybox texture
+			let sampleColumn = Math.floor(sampleAngle *
+				appearance.width / (Math.PI * 2));
+
+			// draw the textured column
+			drawTexturedColumn(
+				screen,
+				appearance,
+				sampleColumn,
+				1e10,
+				c,
+				drawStartY,
+				horizon,
+				horizon - drawStartY, {
+					r: scene.lighting.ambientLight,
+					g: scene.lighting.ambientLight,
+					b: scene.lighting.ambientLight
+				}
+			);
+
+			/*
+			the change in angle depends on the column we are drawing, so it 
+			must be recalculated
+			*/
+			dTheta = dx /
+				(camera.focalLength + (plane ** 2) / camera.focalLength);
+
+			/*
+			increasing the sample angle by a non-linear factor produces 
+			horizontal warp, which we want (rays do not intersect the cylinder
+			at equal arc lengths from each other, caused by changing plane
+			length by a constant value dx)
+			*/
+			sampleAngle += dTheta;
+
+			// if the sample angle goes past 2PI, wrap it back around to 0
+			if (sampleAngle > Math.PI * 2) {
+				sampleAngle = 0;
+			}
+
+			/*
+			decrease the plane length by dx, this is why we have to account 
+			for horizontal warp, since a constant change in plane length 
+			results in a non-linear change in angle. plane length will be 
+			negative at some point (it will end up being 
+			-camera.aspectRatio / 2), however this doesn't matter since
+			this value is always squared when it is used
+			*/
+			plane -= dx;
+		}
 	}
-
-	/*
-	update the pixel buffer of the screen to the current state of the 
-	canvas
-	*/
-	screen.setPixels();
 };
-
 // renders every part of the scene (walls, floors, sprites, etc.)
 Renderer.render = function(screen, scene, camera) {
 
 	// check if the screen received is the valid type
 	if (!(screen instanceof Screen)) {
 		throw new Error(
-			"Failed to render scene: first argument passed to " + 
+			"Failed to render scene: first argument passed to " +
 			"Renderer.render was not an instance of Pseudo3d.Screen"
 		);
 	}
@@ -667,7 +722,7 @@ Renderer.render = function(screen, scene, camera) {
 	// check if the scene received is the valid type
 	if (!(scene instanceof Scene)) {
 		throw new Error(
-			"Failed to render scene: second argument passed to " + 
+			"Failed to render scene: second argument passed to " +
 			"Renderer.render was not an instance of Pseudo3d.Scene"
 		);
 	}
@@ -675,7 +730,7 @@ Renderer.render = function(screen, scene, camera) {
 	// check if the camera received is the valid type
 	if (!(camera instanceof Camera)) {
 		throw new Error(
-			"Failed to render scene: third argument passed to " + 
+			"Failed to render scene: third argument passed to " +
 			"Renderer.render was not an instance of Pseudo3d.Camera"
 		);
 	}
@@ -705,7 +760,9 @@ Renderer.render = function(screen, scene, camera) {
 	}
 };
 
-export { Renderer };
+export {
+	Renderer
+};
 
 function calculateLightingScalar(scene, camera, depth, side) {
 	// calculate the lighting scalar for each color field

@@ -120,6 +120,20 @@ class Screen {
 		);
 		this.drawingContext.putImageData(tempImageData, 0, 0);
 	}
+
+	// appends the htmlCanvasElement as a child to the passed node
+	setParent(node) {
+		// check if the parameter received is valid
+		if(!(node instanceof Node)) {
+			throw new Error(
+				"Failed to execute Screen.setParent: parameter 1 is not of " + 
+				"type node"
+				);
+		}
+
+		// append the canvas element to the node
+		node.appendChild(this.htmlCanvasElement);
+	}
 }
 
 export { Screen };
