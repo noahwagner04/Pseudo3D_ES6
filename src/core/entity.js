@@ -86,8 +86,8 @@ class Entity {
 			direction.y
 		);
 
-		// set the z position of the entity
-		this.orientation.position.z = position.z;
+		// set the z position of the entity (default to 0)
+		this.orientation.position.z = position.z || 0;
 
 		// set the size to a default unit square if none was provided
 		this.size = config.size || {
