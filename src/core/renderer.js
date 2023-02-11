@@ -113,6 +113,7 @@ Renderer.renderWalls = function(screen, scene, camera) {
 
 			/*
 			calculate the height of the column to draw (in pixel coordinates)
+			ray.distance is the local depth of the wall column we hit
 			*/
 			let lineHeight = screen.renderHeight / ray.distance;
 
@@ -608,109 +609,90 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 	} else if (appearance instanceof Texture) {
 		// draw an image for the skybox
 
-		// get the current angle of the camera
-		let angle = camera.orientation.direction.getAngleBtw(new Vector(1, 0));
-
-		// make the angle wrap around to be in the range 0 - 2PI
-		if (camera.orientation.direction.y < 0) angle = 2 * Math.PI - angle;
-
-		// angle between the direction vector and the camera plane
-		let FOVAngle = Math.atan((screen.aspectRatio * 0.5) /
-			camera.focalLength);
-
-		/*
-		the angle between the direction and scaled plane vector for any given 
-		column of the screen
-		*/
-		let sampleAngle = angle - FOVAngle;
-
-		// have the angle wrap around to 2PI if it goes below 0
-		if (sampleAngle < 0) {
-			sampleAngle = Math.PI * 2 + sampleAngle;
-		}
-
-		/*
-		the change in angle for each increase in column (it is a function 
-		of the plane length for each column)
-		*/
-		let dTheta;
-
-		// how much to change the length of the plane per column
-		let dx = screen.aspectRatio / screen.renderWidth;
-
-		// the length of the plane for the left-most column of the screen
-		let plane = screen.aspectRatio / 2;
+		let ray = new Ray(
+			scene,
+			0.5,
+			0.5,
+			0,
+			1,
+			1
+		);
 
 		// for every column of the screen...
 		for (let c = 0; c < screen.renderWidth; c++) {
+			let perpWallDist;
+			let wallX;
 
 			/*
-			calculate vertical stretch factor (this value represnts the 
-			normalized perpendicular distance to an edge of the skybox 
-			cylinder)
+			remap x from a range of 0 - screen.renderWidth, to -0.5 - 0.5 (this 
+			variable is used for the ray direction setup)
 			*/
-			let dist = camera.focalLength /
-				Math.sqrt(plane ** 2 + camera.focalLength ** 2);
+			let cameraX = (c / screen.renderWidth) - 0.5;
 
-			// the modified height of the column we are going to draw
-			let columnHeight = Math.floor(camera.focalLength *
-				appearance.height / dist);
+			/*
+			set up the ray x and y directions, scale the camera direction by 
+			focalLength of the camera to get different fov, and scale the camera 
+			plane by the aspect ratio of the screen in order to fix horizontal 
+			stretch when using a non-square aspect ratio
+			*/
+			let rayDirX = camera.orientation.direction.x * camera.focalLength +
+				camera.plane.x * screen.aspectRatio * cameraX;
+			let rayDirY = camera.orientation.direction.y * camera.focalLength +
+				camera.plane.y * screen.aspectRatio * cameraX;
 
-			// starting y coordinate of the column to draw
+			/*
+			initialize the ray with the correct direction (use a length of 1 in
+			order to avoid using a square root, and to calculate the perpendicular 
+			distance)
+			*/
+			ray.init(
+				0.5,
+				0.5,
+				rayDirX,
+				rayDirY,
+				1
+			);
+
+			if (ray.sideDistX < ray.sideDistY) {
+				wallX = 0.5 +
+					ray.sideDistX * rayDirY;
+				perpWallDist = ray.sideDistX * 2;
+
+			} else {
+				wallX = 0.5 +
+					ray.sideDistY * rayDirX;
+				perpWallDist = ray.sideDistY * 2;
+			}
+
+			// make wallX relative to the cell it hit
+			wallX -= Math.floor(wallX);
+
+			let texX = Math.floor(wallX * appearance.width);
+
+			let columnHeight = Math.floor(appearance.height / perpWallDist);
+
 			let drawStartY = horizon - columnHeight;
 
-			// remap the angle to a column of our skybox texture
-			let sampleColumn = Math.floor(sampleAngle *
-				appearance.width / (Math.PI * 2));
-
-			// draw the textured column
 			drawTexturedColumn(
 				screen,
 				appearance,
-				sampleColumn,
+				texX,
 				1e10,
 				c,
 				drawStartY,
 				horizon,
-				horizon - drawStartY, {
+				columnHeight, {
 					r: scene.lighting.ambientLight,
 					g: scene.lighting.ambientLight,
 					b: scene.lighting.ambientLight
 				}
 			);
-
-			/*
-			the change in angle depends on the column we are drawing, so it 
-			must be recalculated
-			*/
-			dTheta = dx /
-				(camera.focalLength + (plane ** 2) / camera.focalLength);
-
-			/*
-			increasing the sample angle by a non-linear factor produces 
-			horizontal warp, which we want (rays do not intersect the cylinder
-			at equal arc lengths from each other, caused by changing plane
-			length by a constant value dx)
-			*/
-			sampleAngle += dTheta;
-
-			// if the sample angle goes past 2PI, wrap it back around to 0
-			if (sampleAngle > Math.PI * 2) {
-				sampleAngle = 0;
-			}
-
-			/*
-			decrease the plane length by dx, this is why we have to account 
-			for horizontal warp, since a constant change in plane length 
-			results in a non-linear change in angle. plane length will be 
-			negative at some point (it will end up being 
-			-camera.aspectRatio / 2), however this doesn't matter since
-			this value is always squared when it is used
-			*/
-			plane -= dx;
 		}
 	}
 };
+
+
+
 // renders every part of the scene (walls, floors, sprites, etc.)
 Renderer.render = function(screen, scene, camera) {
 
