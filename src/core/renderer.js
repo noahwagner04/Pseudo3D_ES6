@@ -163,7 +163,13 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				calculateLightingScalar(
 					scene,
 					camera,
-					ray.distance,
+					/*
+					Transform the depth from camera space to world space by 
+					multiplying the ray.distance by the focal length. This 
+					ensures that the depth used for lighting accurately 
+					reflects the distance from the wall (perpwalldist).
+					*/
+					ray.distance * camera.focalLength,
 					ray.side
 				) : {
 					r: 1,
@@ -353,7 +359,10 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 
 		// calculate the lighting of the row to be drawn
 		let lighting = scene.lighting.enabled ?
-			calculateLightingScalar(scene, camera, rowDistance) : {
+			calculateLightingScalar(
+				scene, 
+				camera, 
+				rowDistance * camera.focalLength) : {
 				r: 1,
 				g: 1,
 				b: 1
@@ -521,7 +530,10 @@ Renderer.renderEntities = function(screen, scene, camera) {
 
 		// calculate the lighting scalar for the sprite
 		let lighting = scene.lighting.enabled ?
-			calculateLightingScalar(scene, camera, transformY) : {
+			calculateLightingScalar(
+				scene, 
+				camera, 
+				transformY * camera.focalLength) : {
 				r: 1,
 				g: 1,
 				b: 1
