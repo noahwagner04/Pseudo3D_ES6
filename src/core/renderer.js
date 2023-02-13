@@ -134,30 +134,6 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				(lineHeight * wallInfo.height - lineHeight / 2));
 			let drawEnd = Math.floor(columnCenter + lineHeight / 2);
 
-			/*
-			// the true drawEnd of the column (accounting for potential walls
-			infront of this one)
-			*/
-			let trueDrawEnd = drawEnd;
-
-			// if the top of the projected wall is above the 
-			if (drawStart <= smallestDrawStart) {
-				/*
-				set the drawEnd to the drawStart of the tallest wall in this 
-				column of the screen (don't do this if we are the first wall 
-				the ray hit, which can be detected if smallestDrawStart is 
-				Infinity)
-				*/
-				trueDrawEnd = smallestDrawStart === Infinity ?
-					trueDrawEnd : smallestDrawStart;
-
-				// update the smallestDrawStart (or tallest wall)
-				smallestDrawStart = drawStart;
-			} else {
-				// continue casting ray if this wall is too short to be seen
-				continue;
-			}
-
 			// calculate the lighting scalar for each color field
 			let lighting = scene.lighting.enabled ?
 				calculateLightingScalar(
@@ -252,8 +228,7 @@ Renderer.renderWalls = function(screen, scene, camera) {
 					ray.distance,
 					x,
 					drawStart,
-					trueDrawEnd,
-					drawEnd - drawStart,
+					drawEnd,
 					lighting
 				);
 			}
@@ -569,7 +544,6 @@ Renderer.renderEntities = function(screen, scene, camera) {
 				x,
 				drawStartY,
 				drawEndY,
-				drawEndY - drawStartY,
 				lighting
 			);
 		}
@@ -692,8 +666,7 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 				1e10, // use a far distance so nothing will be behind it
 				c,
 				horizon - columnHeight,
-				horizon,
-				columnHeight, {
+				horizon, {
 					r: scene.lighting.ambientLight,
 					g: scene.lighting.ambientLight,
 					b: scene.lighting.ambientLight
@@ -836,11 +809,10 @@ function drawTexturedColumn(
 	x,
 	startY,
 	endY,
-	lineHeight,
 	lighting,
 ) {
 	// how much to increase the texture coordinate per screen pixel
-	let step = texture.height / lineHeight;
+	let step = texture.height / (endY - startY);
 
 	/*
 	start at 0 if the top of the wall is in the bounds of the screen, 
