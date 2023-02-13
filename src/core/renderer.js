@@ -641,21 +641,15 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 			*/
 			let cameraX = (c / screen.renderWidth) - 0.5;
 
-			/*
-			set up the ray x and y directions, scale the camera direction by 
-			focalLength of the camera to get different fov, and scale the camera 
-			plane by the aspect ratio of the screen in order to fix horizontal 
-			stretch when using a non-square aspect ratio
-			*/
+			// set up initial ray components like the wall casting code
 			let rayDirX = camera.orientation.direction.x * camera.focalLength +
 				camera.plane.x * screen.aspectRatio * cameraX;
 			let rayDirY = camera.orientation.direction.y * camera.focalLength +
 				camera.plane.y * screen.aspectRatio * cameraX;
 
 			/*
-			initialize the ray with the correct direction (use a length of 1 in
-			order to avoid using a square root, and to calculate the perpendicular 
-			distance)
+			initialize the ray, starting position is independant of camera
+			position
 			*/
 			ray.init(
 				0.5,
@@ -665,33 +659,38 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 				1
 			);
 
-			if (ray.sideDistX < ray.sideDistY) {
-				wallX = 0.5 +
-					ray.sideDistX * rayDirY;
-				perpWallDist = ray.sideDistX * 2;
+			/*
+			calculate the perpendicular wall distance, shorter sideDistance is
+			the one used, also calculate the wallX for the corresponding side
 
+			multiply the perpendicular distance by 2 to translate the range
+			from (0, 0.5] to (0, 1]
+			*/
+			if (ray.sideDistX < ray.sideDistY) {
+				wallX = 0.5 + ray.sideDistX * rayDirY;
+				perpWallDist = ray.sideDistX * 2;
 			} else {
-				wallX = 0.5 +
-					ray.sideDistY * rayDirX;
+				wallX = 0.5 + ray.sideDistY * rayDirX;
 				perpWallDist = ray.sideDistY * 2;
 			}
 
-			// make wallX relative to the cell it hit
+			// set wallX to the fractional part of it
 			wallX -= Math.floor(wallX);
 
+			// get the texture column to use
 			let texX = Math.floor(wallX * appearance.width);
 
+			// project the height of the skybox texture onto the screen
 			let columnHeight = Math.floor(appearance.height / perpWallDist);
 
-			let drawStartY = horizon - columnHeight;
-
+			// draw the textured column
 			drawTexturedColumn(
 				screen,
 				appearance,
 				texX,
-				1e10,
+				1e10, // use a far distance so nothing will be behind it
 				c,
-				drawStartY,
+				horizon - columnHeight,
 				horizon,
 				columnHeight, {
 					r: scene.lighting.ambientLight,
