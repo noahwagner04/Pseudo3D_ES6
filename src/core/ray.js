@@ -113,11 +113,12 @@ class Ray {
 
 		/*
 		represents the total distance the ray was cast, the meaning of this
-		variable slightly changes if the user casts the ray using DDA or cast.
-		DDA - distance represents the total perpendular distance traveled 
+		variable slightly changes depending on whether the ray was cast by 
+		the user or the engine
+		engine - distance represents the total perpendular distance traveled 
 		divided by the focalLength of the camera (not so useful for the user,
 		but very useful for the render engine)
-		cast - distance represents the actual distance the ray has traveled
+		user - distance represents the actual distance the ray has traveled
 		*/
 		this.distance = 0;
 	}
