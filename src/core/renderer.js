@@ -649,7 +649,8 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 
 			/*
 			initialize the ray, starting position is independant of camera
-			position
+			position. No need to cast the ray, we can just use the initial
+			side distances as the perpendicular wall distance for projection
 			*/
 			ray.init(
 				0.5,
