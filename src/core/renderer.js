@@ -289,7 +289,7 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 	// for every row of the screen...
 	for (let y = rowStart; y < rowEnd; y++) {
 		// check if this pixel is on the floor or the ceiling
-		let isFloor = y > horizon;
+		let isFloor = y >= horizon;
 
 		// texture / color going to be rendered by inner loop
 		let appearance = isFloor ? floorAppearance : ceilingAppearance;
