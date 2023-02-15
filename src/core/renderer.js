@@ -122,7 +122,7 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			camera height and pitch)
 			*/
 			let columnCenter =
-				(screen.renderHeight / 2 + camera.pitch) +
+				Math.floor(screen.renderHeight / 2 + camera.pitch) +
 				screen.renderHeight *
 				((camera.orientation.position.z - 0.5) / ray.distance);
 
@@ -449,7 +449,7 @@ Renderer.renderEntities = function(screen, scene, camera) {
 			screen.renderWidth;
 
 		// y coordinate of center of the projected entity in pixel coordinates
-		let entityScreenY = (screen.renderHeight / 2 + camera.pitch) -
+		let entityScreenY = Math.floor(screen.renderHeight / 2 + camera.pitch) -
 			((entity.orientation.position.z + (entity.size.y - 1) / 2 -
 					(camera.orientation.position.z - 0.5)) /
 				transformY) * screen.renderHeight;
