@@ -366,9 +366,12 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 				let texIndex = (tx + ty * appearance.width) * 4;
 
 				// get the color from the pixels array
-				red = Math.floor(appearance.pixels[texIndex] * lighting.r);
-				green = Math.floor(appearance.pixels[texIndex + 1] * lighting.g);
-				blue = Math.floor(appearance.pixels[texIndex + 2] * lighting.b);
+				red = Math.floor(appearance.pixels[texIndex] *
+					lighting.r);
+				green = Math.floor(appearance.pixels[texIndex + 1] *
+					lighting.g);
+				blue = Math.floor(appearance.pixels[texIndex + 2] *
+					lighting.b);
 				alpha = 255;
 			}
 
@@ -430,10 +433,10 @@ Renderer.renderEntities = function(screen, scene, camera) {
 			screen.renderWidth;
 
 		// y coordinate of center of the projected entity in pixel coordinates
-		let entityScreenY = Math.floor(screen.renderHeight / 2 + camera.pitch) -
-			((entity.orientation.position.z + (entity.size.y - 1) / 2 -
-					(camera.orientation.position.z - 0.5)) /
-				transformY) * screen.renderHeight;
+		let entityScreenY = Math.floor(screen.renderHeight / 2 +
+			camera.pitch) - ((entity.orientation.position.z +
+			(entity.size.y - 1) / 2 - (camera.orientation.position.z -
+				0.5)) / transformY) * screen.renderHeight;
 
 		// height of the projected entity on screen
 		let entityHeight = (entity.size.y / transformY) * screen.renderHeight;
@@ -640,7 +643,7 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 				texX,
 				horizon - columnHeight,
 				horizon,
-				1e10, // use a far distance so nothing will be behind it
+				0, // skybox will be drawn first, don't check the depth buffer
 				{
 					r: scene.lighting.ambientLight,
 					g: scene.lighting.ambientLight,
@@ -779,7 +782,7 @@ function drawColoredColumn(
 		let index = x + y * screen.renderWidth;
 
 		// don't draw the color if there is something closer to the camera
-		if (screen.depthBuffer[index] < depth) continue;
+		if (depth && screen.depthBuffer[index] < depth) continue;
 
 		// draw the pixel
 		screen.pixels[index * 4] =
@@ -829,7 +832,7 @@ function drawTexturedColumn(
 		let index = x + y * screen.renderWidth;
 
 		// if there is something obstructing this pixel, don't draw it
-		if (screen.depthBuffer[index] <= depth) {
+		if (depth && screen.depthBuffer[index] <= depth) {
 			texPosY += step;
 			continue;
 		}
