@@ -831,7 +831,10 @@ function drawTexturedColumn(
 		// index for depthbuffer and pixel screen
 		let index = x + y * screen.renderWidth;
 
-		// if there is something obstructing this pixel, don't draw it
+		/*
+		if there is something obstructing this pixel, don't draw it, if the
+		depth provided is 0, continue drawing regardless
+		*/
 		if (depth && screen.depthBuffer[index] <= depth) {
 			texPosY += step;
 			continue;
@@ -861,6 +864,10 @@ function drawTexturedColumn(
 		// increment the y texture coordinate
 		texPosY += step;
 
-		screen.depthBuffer[index] = depth;
+		/*
+		if the depth isn't 0, override the depth buffer with the provided 
+		depth
+		*/
+		if (depth) screen.depthBuffer[index] = depth;
 	}
 }
