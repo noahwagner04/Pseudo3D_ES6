@@ -177,11 +177,11 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				// draw the single colored column
 				drawColoredColumn(
 					screen,
-					color,
-					ray.distance,
 					x,
+					color,
 					drawStart,
 					drawEnd,
+					ray.distance,
 					lighting
 				);
 
@@ -223,12 +223,12 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				*/
 				drawTexturedColumn(
 					screen,
+					x,
 					wallInfo.appearance,
 					texX,
-					ray.distance,
-					x,
 					drawStart,
 					drawEnd,
+					ray.distance,
 					lighting
 				);
 			}
@@ -335,8 +335,8 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 		// calculate the lighting of the row to be drawn
 		let lighting = scene.lighting.enabled ?
 			calculateLightingScalar(
-				scene, 
-				camera, 
+				scene,
+				camera,
 				rowDistance * camera.focalLength) : {
 				r: 1,
 				g: 1,
@@ -506,8 +506,8 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		// calculate the lighting scalar for the sprite
 		let lighting = scene.lighting.enabled ?
 			calculateLightingScalar(
-				scene, 
-				camera, 
+				scene,
+				camera,
 				transformY * camera.focalLength) : {
 				r: 1,
 				g: 1,
@@ -519,12 +519,11 @@ Renderer.renderEntities = function(screen, scene, camera) {
 			if (appearanceIsColor) {
 				drawColoredColumn(
 					screen,
-					entity.appearance,
-					transformY,
 					x,
+					entity.appearance,
 					drawStartY,
 					drawEndY,
-					lighting
+					transformY lighting
 				);
 				continue;
 			}
@@ -537,13 +536,14 @@ Renderer.renderEntities = function(screen, scene, camera) {
 				entity.appearance.width);
 
 			// draw the textured column
-			drawTexturedColumn(screen,
+			drawTexturedColumn(
+				screen,
+				x,
 				entity.appearance,
 				texX,
-				transformY,
-				x,
 				drawStartY,
 				drawEndY,
+				transformY,
 				lighting
 			);
 		}
@@ -661,12 +661,13 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 			// draw the textured column
 			drawTexturedColumn(
 				screen,
+				c,
 				appearance,
 				texX,
-				1e10, // use a far distance so nothing will be behind it
-				c,
 				horizon - columnHeight,
-				horizon, {
+				horizon,
+				1e10, // use a far distance so nothing will be behind it
+				{
 					r: scene.lighting.ambientLight,
 					g: scene.lighting.ambientLight,
 					b: scene.lighting.ambientLight
@@ -764,12 +765,12 @@ function calculateLightingScalar(scene, camera, depth, side) {
 // draws a vertical line of one color
 function drawColoredColumn(
 	screen,
-	color,
-	depth,
 	x,
+	color,
 	startY,
 	endY,
-	lighting,
+	depth,
+	lighting
 ) {
 
 	/*
@@ -803,13 +804,13 @@ function drawColoredColumn(
 // draws a vertical slice of the texture provided at the given coordinates
 function drawTexturedColumn(
 	screen,
+	x,
 	texture,
 	texX,
-	depth,
-	x,
 	startY,
 	endY,
-	lighting,
+	depth,
+	lighting
 ) {
 	// how much to increase the texture coordinate per screen pixel
 	let step = texture.height / (endY - startY);
