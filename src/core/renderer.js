@@ -135,23 +135,12 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			let drawEnd = Math.floor(columnCenter + lineHeight / 2);
 
 			// calculate the lighting scalar for each color field
-			let lighting = scene.lighting.enabled ?
-				calculateLightingScalar(
-					scene,
-					camera,
-					/*
-					Transform the depth from camera space to world space by 
-					multiplying the ray.distance by the focal length. This 
-					ensures that the depth used for lighting accurately 
-					reflects the distance from the wall (perpwalldist).
-					*/
-					ray.distance * camera.focalLength,
-					ray.side
-				) : {
-					r: 1,
-					g: 1,
-					b: 1
-				};
+			let lighting = calculateLightingScalar(
+				scene,
+				camera,
+				ray.distance,
+				ray.side
+			);
 
 			// try to access the pixels of the appearance
 			let drawTexture = wallInfo.appearance.hasLoaded;
@@ -333,15 +322,7 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 		let floorY = camera.orientation.position.y + rayDirLY * rowDistance;
 
 		// calculate the lighting of the row to be drawn
-		let lighting = scene.lighting.enabled ?
-			calculateLightingScalar(
-				scene,
-				camera,
-				rowDistance * camera.focalLength) : {
-				r: 1,
-				g: 1,
-				b: 1
-			};
+		let lighting = calculateLightingScalar(scene, camera, rowDistance);
 
 		// for every horizontal pixel in this row...
 		for (let x = 0; x < screen.renderWidth; x++) {
@@ -504,15 +485,7 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		}
 
 		// calculate the lighting scalar for the sprite
-		let lighting = scene.lighting.enabled ?
-			calculateLightingScalar(
-				scene,
-				camera,
-				transformY * camera.focalLength) : {
-				r: 1,
-				g: 1,
-				b: 1
-			};
+		let lighting = calculateLightingScalar(scene, camera, transformY);
 
 		for (let x = columnStart; x < columnEnd; x++) {
 			// if the appearance is a color, draw a single colored rectangle
@@ -523,7 +496,8 @@ Renderer.renderEntities = function(screen, scene, camera) {
 					entity.appearance,
 					drawStartY,
 					drawEndY,
-					transformY lighting
+					transformY,
+					lighting
 				);
 				continue;
 			}
@@ -735,9 +709,29 @@ export {
 	Renderer
 };
 
+/*
+calculates a lighting scalar for each color field depending on the depth of the
+object, camera and scene lighting settings, and the "side" that was hit (only 
+used for walls)
+*/
 function calculateLightingScalar(scene, camera, depth, side) {
-	// calculate the lighting scalar for each color field
-	let lighting = camera.lighting.brightness / depth;
+	/*
+	if lighting is disabled, return a 1 for all color feilds (no change in
+	color)
+	*/
+	if (!scene.lighting.enabled) return {
+		r: 1,
+		g: 1,
+		b: 1
+	};
+
+	/*
+	Transform the depth from camera space to world space by 
+	multiplying the it by the focal length. This 
+	ensures that the depth used for lighting accurately 
+	reflects the distance from the object (perpwalldist).
+	*/
+	let lighting = camera.lighting.brightness / (depth * camera.focalLength);
 
 	// clamp the lighting to not go past the maximum brightness
 	if (lighting > camera.lighting.maxBrightness) {
