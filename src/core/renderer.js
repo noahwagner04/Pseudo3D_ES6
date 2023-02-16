@@ -643,7 +643,7 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 				texX,
 				horizon - columnHeight,
 				horizon,
-				0, // skybox will be drawn first, don't check the depth buffer
+				-1, // skybox will be drawn first, don't check the depth buffer
 				{
 					r: scene.lighting.ambientLight,
 					g: scene.lighting.ambientLight,
@@ -833,9 +833,9 @@ function drawTexturedColumn(
 
 		/*
 		if there is something obstructing this pixel, don't draw it, if the
-		depth provided is 0, continue drawing regardless
+		depth provided is -1, continue drawing regardless
 		*/
-		if (depth && screen.depthBuffer[index] <= depth) {
+		if (depth !== -1 && screen.depthBuffer[index] <= depth) {
 			texPosY += step;
 			continue;
 		}
@@ -865,9 +865,9 @@ function drawTexturedColumn(
 		texPosY += step;
 
 		/*
-		if the depth isn't 0, override the depth buffer with the provided 
+		if the depth isn't -1, override the depth buffer with the provided 
 		depth
 		*/
-		if (depth) screen.depthBuffer[index] = depth;
+		if (depth !== -1) screen.depthBuffer[index] = depth;
 	}
 }
