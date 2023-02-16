@@ -135,7 +135,7 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			let drawEnd = Math.floor(columnCenter + lineHeight / 2);
 
 			// calculate the lighting scalar for each color field
-			let lighting = calculateLightingScalar(
+			let lighting = calculateLighting(
 				scene,
 				camera,
 				ray.distance,
@@ -322,7 +322,7 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 		let floorY = camera.orientation.position.y + rayDirLY * rowDistance;
 
 		// calculate the lighting of the row to be drawn
-		let lighting = calculateLightingScalar(scene, camera, rowDistance);
+		let lighting = calculateLighting(scene, camera, rowDistance);
 
 		// for every horizontal pixel in this row...
 		for (let x = 0; x < screen.renderWidth; x++) {
@@ -488,7 +488,7 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		}
 
 		// calculate the lighting scalar for the sprite
-		let lighting = calculateLightingScalar(scene, camera, transformY);
+		let lighting = calculateLighting(scene, camera, transformY);
 
 		for (let x = columnStart; x < columnEnd; x++) {
 			// if the appearance is a color, draw a single colored rectangle
@@ -717,7 +717,7 @@ calculates a lighting scalar for each color field depending on the depth of the
 object, camera and scene lighting settings, and the "side" that was hit (only 
 used for walls)
 */
-function calculateLightingScalar(scene, camera, depth, side) {
+function calculateLighting(scene, camera, depth, side) {
 	/*
 	if lighting is disabled, return a 1 for all color feilds (no change in
 	color)
