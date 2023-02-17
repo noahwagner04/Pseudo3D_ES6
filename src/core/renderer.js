@@ -111,28 +111,14 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				continue;
 			}
 
-			/*
-			calculate the height of the column to draw (in pixel coordinates)
-			ray.distance is the local depth of the wall column we hit
-			*/
-			let lineHeight = screen.renderHeight / ray.distance;
-
-			/*
-			the center of the columns that we will be drawing (depends on 
-			camera height and pitch)
-			*/
-			let columnCenter =
-				Math.floor(screen.renderHeight / 2 + camera.pitch) +
-				screen.renderHeight *
-				((camera.orientation.position.z - 0.5) / ray.distance);
-
-			/*
-			now calculate the two endpoints of the column (in pixel 
-			coordinates), drawStart depends on the height of the wall
-			*/
-			let drawStart = Math.floor(columnCenter -
-				(lineHeight * wallInfo.height - lineHeight / 2));
-			let drawEnd = Math.floor(columnCenter + lineHeight / 2);
+			// get the projected column of the walls height
+			let verticalLine = projectLine(
+				screen,
+				camera,
+				wallInfo.height,
+				wallInfo.elevation,
+				ray.distance
+			);
 
 			// calculate the lighting scalar for each color field
 			let lighting = calculateLighting(
@@ -168,8 +154,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 					screen,
 					x,
 					color,
-					drawStart,
-					drawEnd,
+					verticalLine.start,
+					verticalLine.end,
 					ray.distance,
 					lighting
 				);
@@ -215,8 +201,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 					x,
 					wallInfo.appearance,
 					texX,
-					drawStart,
-					drawEnd,
+					verticalLine.start,
+					verticalLine.end,
 					ray.distance,
 					lighting
 				);
@@ -432,15 +418,6 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		let entityScreenX = (transformX / transformY + 1) / 2 *
 			screen.renderWidth;
 
-		// y coordinate of center of the projected entity in pixel coordinates
-		let entityScreenY = Math.floor(screen.renderHeight / 2 +
-			camera.pitch) - ((entity.orientation.position.z +
-			(entity.size.y - 1) / 2 - (camera.orientation.position.z -
-				0.5)) / transformY) * screen.renderHeight;
-
-		// height of the projected entity on screen
-		let entityHeight = (entity.size.y / transformY) * screen.renderHeight;
-
 		// width of the projected entity on screen
 		let entityWidth = (entity.size.x / transformY) * screen.renderWidth /
 			screen.aspectRatio;
@@ -450,14 +427,6 @@ Renderer.renderEntities = function(screen, scene, camera) {
 
 		// column of the screen to stop drawing at
 		let drawEndX = Math.floor(entityScreenX + entityWidth / 2);
-
-		// row of the screen to start drawing at
-		let drawStartY = Math.floor(
-			entityScreenY - entityHeight / 2);
-
-		// row of the screen to stop drawing at
-		let drawEndY = Math.floor(
-			entityScreenY + entityHeight / 2);
 
 		// constrained drawStartX to bounds of screen
 		let columnStart = drawStartX;
@@ -476,6 +445,15 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		} else if (columnEnd > screen.renderWidth) {
 			columnEnd = screen.renderWidth;
 		}
+
+		// get the projected column of the sprites height
+		let verticalLine = projectLine(
+			screen,
+			camera,
+			entity.size.y,
+			entity.orientation.position.z,
+			transformY
+		);
 
 		// whether or not the appearance is a color
 		let appearanceIsColor = false;
@@ -497,8 +475,8 @@ Renderer.renderEntities = function(screen, scene, camera) {
 					screen,
 					x,
 					entity.appearance,
-					drawStartY,
-					drawEndY,
+					verticalLine.start,
+					verticalLine.end,
 					transformY,
 					lighting
 				);
@@ -518,8 +496,8 @@ Renderer.renderEntities = function(screen, scene, camera) {
 				x,
 				entity.appearance,
 				texX,
-				drawStartY,
-				drawEndY,
+				verticalLine.start,
+				verticalLine.end,
 				transformY,
 				lighting
 			);
@@ -711,6 +689,39 @@ Renderer.render = function(screen, scene, camera) {
 export {
 	Renderer
 };
+
+/*
+calculates the pixel coordinates of a line in world space being projected onto
+a screen
+*/
+function projectLine(screen, camera, height, zPos, depth) {
+
+	/*
+	horizon is determined by the pitch of the camera (half the screen height be
+	default)
+	*/
+	let horizon = screen.renderHeight / 2 + Math.floor(camera.pitch);
+
+	// height of the projected line in pixels
+	let lineHeight = height / depth * screen.renderHeight;
+
+	/*
+	this accounts for the z position of the camera and the line (this 
+	calculation represents projecting the point on the bottom of the line 
+	to the screen)
+	*/
+	let yShift = (zPos - camera.orientation.position.z) / depth *
+		screen.renderHeight;
+
+	// the bottom of the projected line on is the horizon subtracted with yShift
+	let lineBottom = horizon - yShift;
+
+	// return the starting and ending pixel coordinates of the projected line
+	return {
+		start: Math.floor(lineBottom - lineHeight),
+		end: Math.floor(lineBottom)
+	};
+}
 
 /*
 calculates a lighting scalar for each color field depending on the depth of the

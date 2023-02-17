@@ -4,9 +4,15 @@ texture settings, objects in the scene, skybox texture, and lighting
 information
 */
 
-import { Color } from "/src/resources/color.js";
-import { Texture } from "/src/resources/texture.js";
-import { Entity } from "/src/core/entity.js";
+import {
+	Color
+} from "/src/resources/color.js";
+import {
+	Texture
+} from "/src/resources/texture.js";
+import {
+	Entity
+} from "/src/core/entity.js";
 
 class Scene {
 	/*
@@ -97,7 +103,9 @@ class Scene {
 
 }
 
-export { Scene };
+export {
+	Scene
+};
 
 // ----input handling functions, each modify the given object to be valid-----
 
@@ -178,6 +186,21 @@ function checkWorldMap(worldMap) {
 
 		// if the height wasn't provided, default to a height of 1
 		worldMap.cellInfo[property].height = height === undefined ? 1 : height;
+
+		// the elevation of the wall
+		let elevation = worldMap.cellInfo[property].elevation;
+
+		// check if the elevation is a number
+		if (elevation !== undefined && typeof elevation !== "number") {
+			throw new Error(
+				"Scene worldMap.cellInfo[\"" + property +
+				"\"].elevation must be a number"
+			);
+		}
+
+		// if the elevation wasn't provided, default to a elevation of 0
+		worldMap.cellInfo[property].elevation =
+			elevation === undefined ? 0 : elevation;
 
 		// the appearance of the wall, can be a texture or color
 		let appearance = worldMap.cellInfo[property].appearance;
@@ -320,7 +343,7 @@ function checkSkybox(skybox) {
 	if the skybox appearance isn't provided, set enabled flag to false and 
 	default to a transparent black color
 	*/
-	if(skybox.appearance === undefined) {
+	if (skybox.appearance === undefined) {
 		skybox.appearance = new Color(0, 0, 0, 0);
 		skybox.enabled = false;
 	} else {
@@ -339,7 +362,7 @@ function checkLighting(lighting) {
 	}
 
 	// default to 1 if no sideShade was provided
-	lighting.sideShade = lighting.sideShade === undefined ? 0 : 
+	lighting.sideShade = lighting.sideShade === undefined ? 0 :
 		lighting.sideShade;
 
 	// check if ambientLight is valid
