@@ -5,7 +5,9 @@ specified; however, the engine will set raylegnth to 1 for certain rendering
 purposes.
 */
 
-import { Scene } from "/src/core/scene.js";
+import {
+	Scene
+} from "/src/core/scene.js";
 
 class Ray {
 	// checks if inputs are the right type, then calls init
@@ -92,6 +94,9 @@ class Ray {
 		*/
 		this.side = 0;
 
+		// which north, south, west, or east face we hit
+		this.face = "";
+
 		/*
 		DDA setup step directions and initial side distances (depends on the
 		direction of our ray)
@@ -161,13 +166,36 @@ class Ray {
 		calculate the distance the ray traveled (decrement back one step 
 		because our collision detection is one step ahead), the calculation 
 		depends on the side that was hit
+
+		also calculate which face we hit (depends on the side hit and the
+		direction the ray is traveling), which can be North, South, East, or 
+		West
 		*/
 		if (this.side === 0) {
 			this.distance = this.sideDistX - this.deltaDistX;
+
+			// the x direction of the ray is < 0
+			if (this.stepX < 0) {
+				this.face = "west";
+			} else {
+				// the x direction of the ray is > 0
+				this.face = "east";
+			}
+
 		} else {
 			this.distance = this.sideDistY - this.deltaDistY;
+
+			// the y direction of the ray is < 0
+			if (this.stepY < 0) {
+				this.face = "north";
+			} else {
+				// the y direction of the ray is > 0
+				this.face = "south";
+			}
 		}
 	}
 }
 
-export { Ray };
+export {
+	Ray
+};

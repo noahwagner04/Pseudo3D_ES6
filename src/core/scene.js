@@ -202,23 +202,65 @@ function checkWorldMap(worldMap) {
 		worldMap.cellInfo[property].elevation =
 			elevation === undefined ? 0 : elevation;
 
-		// the appearance of the wall, can be a texture or color
+		// the appearance of the wall, can be a texture or color, or an object
 		let appearance = worldMap.cellInfo[property].appearance;
 
 		// check if the appearance attribute is valid
 		if (appearance !== undefined &&
+			typeof appearance !== "object" &&
 			!(appearance instanceof Color) &&
 			!(appearance instanceof Texture)
 		) {
 			throw new Error(
 				"Scene worldMap.cellInfo[\"" + property +
-				"\"].appearance must be of type Color or Texture"
+				"\"].appearance must be of type Color or Texture, or object"
 			);
 		}
 
+		// default the appearance to a transparent black color
+		if (appearance === undefined) appearance = new Color(0, 0, 0, 0);
+
+		// the appearance in the valid NESW format
+		let appearanceFinal;
+
+		/*
+		if user only passed a texture or color, just set all NESW
+		attributes to that appearance
+		*/
+		if (appearance instanceof Color || appearance instanceof Texture) {
+			appearanceFinal = {
+				north: appearance,
+				south: appearance,
+				east: appearance,
+				west: appearance
+			};
+		} else {
+			/*
+			if user passed a NESW object, set the attributes of appearanceFinal to
+			their coorisponding value from appearance
+			*/
+			appearanceFinal = {
+				north: appearance.north,
+				south: appearance.south,
+				east: appearance.east,
+				west: appearance.west
+			};
+		}
+
+		// check if each face in the appearance is valid
+		for (const face in appearanceFinal) {
+			/*
+			if the face isn't a color or texture, default to a transparent
+			color
+			*/
+			if (!(appearanceFinal[face] instanceof Color) &&
+				!(appearanceFinal[face] instanceof Texture)) {
+				appearanceFinal[face] = new Color(0, 0, 0, 0);
+			}
+		}
+
 		// if appearance wasn't provided, set it to a transparent color
-		worldMap.cellInfo[property].appearance = appearance ||
-			new Color(0, 0, 0, 0);
+		worldMap.cellInfo[property].appearance = appearanceFinal;
 	}
 }
 

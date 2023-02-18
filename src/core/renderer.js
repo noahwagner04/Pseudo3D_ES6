@@ -128,8 +128,11 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				ray.side
 			);
 
+			// get the appearance of the face we hit
+			let appearance = wallInfo.appearance[ray.face];
+
 			// try to access the pixels of the appearance
-			let drawTexture = wallInfo.appearance.hasLoaded;
+			let drawTexture = appearance.hasLoaded;
 
 			/*
 			if the pixel information for the texture doesn't exist, render a 
@@ -143,10 +146,10 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				the color could be either from an unloaded texture or the 
 				appearance itself could be a color
 				*/
-				if (wallInfo.appearance instanceof Texture) {
-					color = wallInfo.appearance.temporaryColor;
+				if (appearance instanceof Texture) {
+					color = appearance.temporaryColor;
 				} else {
-					color = wallInfo.appearance;
+					color = appearance;
 				}
 
 				// draw the single colored column
@@ -180,16 +183,16 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				wallX -= Math.floor(wallX);
 
 				// get the texture x coordinate for the column
-				let texX = Math.floor(wallX * wallInfo.appearance.width);
+				let texX = Math.floor(wallX * appearance.width);
 
 				/*
 				flip the texture X coordinate depending on the wall face we hit
 				*/
 				if (ray.side === 0 && rayDirX > 0) {
-					texX = wallInfo.appearance.width - texX - 1;
+					texX = appearance.width - texX - 1;
 				}
 				if (ray.side === 1 && rayDirY < 0) {
-					texX = wallInfo.appearance.width - texX - 1;
+					texX = appearance.width - texX - 1;
 				}
 
 				/*
@@ -199,7 +202,7 @@ Renderer.renderWalls = function(screen, scene, camera) {
 				drawTexturedColumn(
 					screen,
 					x,
-					wallInfo.appearance,
+					appearance,
 					texX,
 					verticalLine.start,
 					verticalLine.end,
@@ -781,6 +784,11 @@ function drawColoredColumn(
 	lighting
 ) {
 
+	// don't draw the color if it isn't fully visible
+	if(color.alpha !== 255) {
+		return;
+	}
+
 	/*
 	constrain start and end coordinates to be within the bounds of the screen
 	*/
@@ -793,7 +801,7 @@ function drawColoredColumn(
 		let index = x + y * screen.renderWidth;
 
 		// don't draw the color if there is something closer to the camera
-		if (depth && screen.depthBuffer[index] < depth) continue;
+		if (depth !== -1 && screen.depthBuffer[index] < depth) continue;
 
 		// draw the pixel
 		screen.pixels[index * 4] =
@@ -805,7 +813,7 @@ function drawColoredColumn(
 		screen.pixels[index * 4 + 3] = 255;
 
 		// add the depth to the depth buffer
-		screen.depthBuffer[index] = depth;
+		if (depth !== -1) screen.depthBuffer[index] = depth;
 	}
 }
 
