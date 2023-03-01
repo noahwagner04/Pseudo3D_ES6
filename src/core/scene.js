@@ -381,6 +381,14 @@ function checkSkybox(skybox) {
 		);
 	}
 
+	// default the enabled light to true if nothing was provided
+	if(skybox.reactToLighting === undefined) {
+		skybox.reactToLighting = true;
+	}
+
+	// initialize the enable Light variable
+	skybox.reactToLighting = !!(skybox.reactToLighting);
+
 	/*
 	if the skybox appearance isn't provided, set enabled flag to false and 
 	default to a transparent black color

@@ -562,6 +562,8 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 			1
 		);
 
+		let light = scene.skybox.reactToLighting ? scene.lighting.ambientLight : 1;
+
 		// for every column of the screen...
 		for (let c = 0; c < screen.renderWidth; c++) {
 			let perpWallDist;
@@ -626,9 +628,9 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 				horizon,
 				-1, // skybox will be drawn first, don't check the depth buffer
 				{
-					r: scene.lighting.ambientLight,
-					g: scene.lighting.ambientLight,
-					b: scene.lighting.ambientLight
+					r: light,
+					g: light,
+					b: light
 				}
 			);
 		}
