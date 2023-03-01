@@ -562,7 +562,9 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 			1
 		);
 
-		let light = scene.skybox.reactToLighting ? scene.lighting.ambientLight : 1;
+		// lighting scalar for color feilds
+		let light = scene.skybox.ignoreLighting ? 1 :
+			scene.lighting.ambientLight;
 
 		// for every column of the screen...
 		for (let c = 0; c < screen.renderWidth; c++) {
@@ -787,7 +789,7 @@ function drawColoredColumn(
 ) {
 
 	// don't draw the color if it isn't fully visible
-	if(color.alpha !== 255) {
+	if (color.alpha !== 255) {
 		return;
 	}
 
