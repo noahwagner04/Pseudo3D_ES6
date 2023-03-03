@@ -99,7 +99,8 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			if the ray left the bounds of the map or exceeded the max render 
 			distance, continue casting the next ray
 			*/
-			if (ray.hit === 0 || ray.distance > camera.renderDistance) {
+			if (ray.hit === 0 ||
+				ray.distance * camera.focalLength > camera.renderDistance) {
 				break;
 			}
 
@@ -297,6 +298,9 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 		// horizontal distance the camera is from the current row
 		let rowDistance = Math.abs(posZ / p);
 
+		// don't draw past the maximum render distance
+		if (rowDistance * camera.focalLength > camera.renderDistance) continue;
+
 		// don't use Infinity for row distance
 		rowDistance = rowDistance === Infinity ? 1e3 : rowDistance;
 
@@ -414,8 +418,12 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		// y coordinate of the entity relative to the camera's orientation
 		let transformY = invDet * (-planeY * entityX + planeX * entityY);
 
-		// don't draw the sprite if it is behind the camera
-		if (transformY < 0) continue;
+		/*
+		don't draw the sprite if it is behind the camera or beyond its max
+		render distance
+		*/
+		if (transformY < 0 || 
+			transformY * camera.focalLength > camera.renderDistance) continue;
 
 		// x coordinate of center of the projected entity in pixel coordinates
 		let entityScreenX = (transformX / transformY + 1) / 2 *
