@@ -6,9 +6,15 @@ This must be done in order to make the camera plane always perpendicular to
 the direction vector.
 */
 
-import { Orientation } from "/src/math/orientation.js";
-import { Color } from "/src/resources/color.js";
-import { Vector } from "/src/math/vector.js";
+import {
+	Orientation
+} from "/src/math/orientation.js";
+import {
+	Color
+} from "/src/resources/color.js";
+import {
+	Vector
+} from "/src/math/vector.js";
 
 class Camera {
 	/*
@@ -46,6 +52,12 @@ class Camera {
 		if (config.focalLength !== undefined &&
 			typeof config.focalLength !== "number") {
 			throw new Error("Camera focalLength must be a number");
+		}
+
+		// check if we received a valid renderDistance
+		if (config.renderDistance !== undefined &&
+			typeof config.renderDistance !== "number") {
+			throw new Error("Camera renderDistance must be a number");
 		}
 
 		// check if we received a valid camera pitch
@@ -124,6 +136,9 @@ class Camera {
 
 		// focal length of the camera
 		this.focalLength = config.focalLength || 1;
+
+		// maximum render distance of the camera
+		this.renderDistance = config.renderDistance || Infinity;
 
 		/*
 		this vector represents the local x axis of the camera, and is used
@@ -244,4 +259,6 @@ class Camera {
 	}
 }
 
-export { Camera };
+export {
+	Camera
+};

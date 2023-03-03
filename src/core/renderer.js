@@ -96,10 +96,10 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			let wallInfo = scene.worldMap.cellInfo[ray.hit];
 
 			/*
-			if the ray left the bounds of the map, continue casting the next 
-			ray
+			if the ray left the bounds of the map or exceeded the max render 
+			distance, continue casting the next ray
 			*/
-			if (ray.hit === 0) {
+			if (ray.hit === 0 || ray.distance > camera.renderDistance) {
 				break;
 			}
 
