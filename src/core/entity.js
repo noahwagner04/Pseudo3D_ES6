@@ -102,7 +102,10 @@ class Entity {
 		set isInvisible and hasPartialAlpha to their corresponding 
 		truth / false values
 		*/
-		this.isInvisible = !!config.isInvisible;
+		this.isVisible = config.isVisible == undefined ? 
+			true : !!config.isVisible;
+		this.affectedByLighting = config.affectedByLighting == undefined ? 
+			true : !!config.affectedByLighting;
 		this.hasPartialAlpha = !!config.hasPartialAlpha;
 	}
 }

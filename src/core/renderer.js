@@ -389,6 +389,9 @@ Renderer.renderEntities = function(screen, scene, camera) {
 	for (let i = 0; i < scene.gameObject.entities.length; i++) {
 		let entity = scene.gameObject.entities[i];
 
+		// don't draw the entity if it is invisible
+		if (!entity.isVisible) continue;
+
 		// get entity position relative to camera position
 		let entityX = entity.orientation.position.x -
 			camera.orientation.position.x;
@@ -422,7 +425,7 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		don't draw the sprite if it is behind the camera or beyond its max
 		render distance
 		*/
-		if (transformY < 0 || 
+		if (transformY < 0 ||
 			transformY * camera.focalLength > camera.renderDistance) continue;
 
 		// x coordinate of center of the projected entity in pixel coordinates
@@ -477,7 +480,12 @@ Renderer.renderEntities = function(screen, scene, camera) {
 		}
 
 		// calculate the lighting scalar for the sprite
-		let lighting = calculateLighting(scene, camera, transformY);
+		let lighting = entity.affectedByLighting ?
+			calculateLighting(scene, camera, transformY) : {
+				r: 1,
+				g: 1,
+				b: 1
+			};
 
 		for (let x = columnStart; x < columnEnd; x++) {
 			// if the appearance is a color, draw a single colored rectangle
