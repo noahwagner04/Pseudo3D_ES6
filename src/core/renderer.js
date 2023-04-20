@@ -220,8 +220,12 @@ Renderer.renderFloorCeiling = function(screen, scene, camera) {
 	let height = screen.renderHeight;
 	let width = screen.renderWidth;
 
-	// where the floor and ceiling end
-	let horizon = Math.floor(height / 2 + camera.pitch);
+	/*
+	where the floor and ceiling end (subtract by 1 to better align floor
+	cells with raycast wall cells, the number 1 is chosen arbitrarily, it 
+	just happens to align the floor better with the walls)
+	*/
+	let horizon = Math.floor(height / 2 + camera.pitch) - 1;
 
 	// find the start and end rows to draw floors or ceilings
 	let rowStart = scene.ceiling.enabled ? 0 : horizon;
