@@ -130,7 +130,7 @@ Renderer.renderWalls = function(screen, scene, camera) {
 			);
 
 			// get the appearance of the face we hit
-			let appearance = wallInfo.appearance[ray.face];
+			let appearance = wallInfo.appearance[Ray.faces[ray.face]];
 
 			// try to access the pixels of the appearance
 			let drawTexture = appearance.hasLoaded;
@@ -634,8 +634,23 @@ Renderer.renderSkybox = function(screen, scene, camera) {
 			// set wallX to the fractional part of it
 			wallX -= Math.floor(wallX);
 
-			// get the texture column to use
-			let texX = Math.floor(wallX * appearance.width);
+			// flip wallX depending on the wall face we hit
+			if (ray.side === 0 && rayDirX < 0) {
+				wallX = 1 - wallX;
+			}
+			if (ray.side === 1 && rayDirY > 0) {
+				wallX = 1 - wallX;
+			}
+
+			/*
+			adjust the wallX to be relative to the left edge of the north wall
+			*/
+			wallX += ray.face;
+
+			/*
+			get the texture column to use (stretch the width across four walls)
+			*/
+			let texX = Math.floor(wallX * appearance.width / 4);
 
 			// project the height of the skybox texture onto the screen
 			let columnHeight = Math.floor(appearance.height / perpWallDist);

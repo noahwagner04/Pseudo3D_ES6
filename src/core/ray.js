@@ -10,6 +10,9 @@ import {
 } from "/src/core/scene.js";
 
 class Ray {
+
+	static faces = ["north", "east", "south", "west"];
+
 	// checks if inputs are the right type, then calls init
 	constructor(scene, startX, startY, dirX, dirY, rayLength) {
 
@@ -116,6 +119,30 @@ class Ray {
 			this.sideDistY = (this.mapY + 1.0 - startY) * this.deltaDistY;
 		}
 
+		// find the initial side the ray is "colliding" with
+		this.side = (this.sideDistX > this.sideDistY) ? 1 : 0;
+
+		// calculate the initial face the ray is hitting
+		if (this.side === 0) {
+			// the x direction of the ray is < 0
+			if (this.stepX < 0) {
+				// west
+				this.face = 3;
+			} else {
+				// the x direction of the ray is > 0, east
+				this.face = 1;
+			}
+		} else {
+			// the y direction of the ray is < 0
+			if (this.stepY < 0) {
+				// north
+				this.face = 0;
+			} else {
+				// the y direction of the ray is > 0, south
+				this.face = 2;
+			}
+		}
+
 		/*
 		represents the total distance the ray was cast, the meaning of this
 		variable slightly changes depending on whether the ray was cast by 
@@ -168,18 +195,19 @@ class Ray {
 		depends on the side that was hit
 
 		also calculate which face we hit (depends on the side hit and the
-		direction the ray is traveling), which can be North, South, East, or 
-		West
+		direction the ray is traveling), which can be North (0), South (2), 
+		East (1), or West (3)
 		*/
 		if (this.side === 0) {
 			this.distance = this.sideDistX - this.deltaDistX;
 
 			// the x direction of the ray is < 0
 			if (this.stepX < 0) {
-				this.face = "west";
+				// we are facing west
+				this.face = 3;
 			} else {
-				// the x direction of the ray is > 0
-				this.face = "east";
+				// the x direction of the ray is > 0, we are facing east
+				this.face = 1;
 			}
 
 		} else {
@@ -187,10 +215,11 @@ class Ray {
 
 			// the y direction of the ray is < 0
 			if (this.stepY < 0) {
-				this.face = "north";
+				// we are facing north
+				this.face = 0;
 			} else {
-				// the y direction of the ray is > 0
-				this.face = "south";
+				// the y direction of the ray is > 0, we are facing south
+				this.face = 2;
 			}
 		}
 	}
