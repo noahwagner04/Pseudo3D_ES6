@@ -74,10 +74,15 @@ class Scene {
 	options, floor and ceiling options, fog, or any physical thing that
 	could be added durring runtime that affects the game world
 	*/
-	add(object) {
+	add(type, object, ...params) {
 		// if the object is an entity, add it to the entities array
-		if (object instanceof Entity) {
+		if (type === "entity") {
 			this.gameObject.entities.push(object);
+		}
+
+		if (type === "cellInfo") {
+			this.worldMap.cellInfo[params[0]] = object;
+			formatCellInfo(params[0], this.worldMap.cellInfo[params[0]]);
 		}
 
 		// add more if checks here for different object inputs
@@ -165,103 +170,107 @@ function checkWorldMap(worldMap) {
 
 	// check if each of the cellInfo attributes are correct
 	for (const property in worldMap.cellInfo) {
-		// first check if the attribute is an object
-		if (typeof worldMap.cellInfo[property] !== "object") {
-			throw new Error(
-				"Scene worldMap.cellInfo[\"" + property +
-				"\"] must be an object"
-			);
-		}
-
-		// the height of the wall
-		let height = worldMap.cellInfo[property].height;
-
-		// check if the height is a number
-		if (height !== undefined && typeof height !== "number") {
-			throw new Error(
-				"Scene worldMap.cellInfo[\"" + property +
-				"\"].height must be a number"
-			);
-		}
-
-		// if the height wasn't provided, default to a height of 1
-		worldMap.cellInfo[property].height = height === undefined ? 1 : height;
-
-		// the elevation of the wall
-		let elevation = worldMap.cellInfo[property].elevation;
-
-		// check if the elevation is a number
-		if (elevation !== undefined && typeof elevation !== "number") {
-			throw new Error(
-				"Scene worldMap.cellInfo[\"" + property +
-				"\"].elevation must be a number"
-			);
-		}
-
-		// if the elevation wasn't provided, default to a elevation of 0
-		worldMap.cellInfo[property].elevation =
-			elevation === undefined ? 0 : elevation;
-
-		// the appearance of the wall, can be a texture or color, or an object
-		let appearance = worldMap.cellInfo[property].appearance;
-
-		// check if the appearance attribute is valid
-		if (appearance !== undefined &&
-			typeof appearance !== "object" &&
-			!(appearance instanceof Color) &&
-			!(appearance instanceof Texture)
-		) {
-			throw new Error(
-				"Scene worldMap.cellInfo[\"" + property +
-				"\"].appearance must be of type Color or Texture, or object"
-			);
-		}
-
-		// default the appearance to a transparent black color
-		if (appearance === undefined) appearance = new Color(0, 0, 0, 0);
-
-		// the appearance in the valid NESW format
-		let appearanceFinal;
-
-		/*
-		if user only passed a texture or color, just set all NESW
-		attributes to that appearance
-		*/
-		if (appearance instanceof Color || appearance instanceof Texture) {
-			appearanceFinal = {
-				north: appearance,
-				south: appearance,
-				east: appearance,
-				west: appearance
-			};
-		} else {
-			/*
-			if user passed a NESW object, set the attributes of appearanceFinal to
-			their coorisponding value from appearance
-			*/
-			appearanceFinal = {
-				north: appearance.north,
-				south: appearance.south,
-				east: appearance.east,
-				west: appearance.west
-			};
-		}
-
-		// check if each face in the appearance is valid
-		for (const face in appearanceFinal) {
-			/*
-			if the face isn't a color or texture, default to a transparent
-			color
-			*/
-			if (!(appearanceFinal[face] instanceof Color) &&
-				!(appearanceFinal[face] instanceof Texture)) {
-				appearanceFinal[face] = new Color(0, 0, 0, 0);
-			}
-		}
-
-		// if appearance wasn't provided, set it to a transparent color
-		worldMap.cellInfo[property].appearance = appearanceFinal;
+		formatCellInfo(property, worldMap.cellInfo[property]);
 	}
+}
+
+function formatCellInfo(id, cellInfo) {
+	// first check if the attribute is an object
+	if (typeof cellInfo !== "object") {
+		throw new Error(
+			"Scene cellInfo[\"" + id +
+			"\"] must be an object"
+		);
+	}
+
+	// the height of the wall
+	let height = cellInfo.height;
+
+	// check if the height is a number
+	if (height !== undefined && typeof height !== "number") {
+		throw new Error(
+			"Scene cellInfo[\"" + id +
+			"\"].height must be a number"
+		);
+	}
+
+	// if the height wasn't provided, default to a height of 1
+	cellInfo.height = height === undefined ? 1 : height;
+
+	// the elevation of the wall
+	let elevation = cellInfo.elevation;
+
+	// check if the elevation is a number
+	if (elevation !== undefined && typeof elevation !== "number") {
+		throw new Error(
+			"Scene cellInfo[\"" + id +
+			"\"].elevation must be a number"
+		);
+	}
+
+	// if the elevation wasn't provided, default to a elevation of 0
+	cellInfo.elevation =
+		elevation === undefined ? 0 : elevation;
+
+	// the appearance of the wall, can be a texture or color, or an object
+	let appearance = cellInfo.appearance;
+
+	// check if the appearance attribute is valid
+	if (appearance !== undefined &&
+		typeof appearance !== "object" &&
+		!(appearance instanceof Color) &&
+		!(appearance instanceof Texture)
+	) {
+		throw new Error(
+			"Scene cellInfo[\"" + id +
+			"\"].appearance must be of type Color or Texture, or object"
+		);
+	}
+
+	// default the appearance to a transparent black color
+	if (appearance === undefined) appearance = new Color(0, 0, 0, 0);
+
+	// the appearance in the valid NESW format
+	let appearanceFinal;
+
+	/*
+	if user only passed a texture or color, just set all NESW
+	attributes to that appearance
+	*/
+	if (appearance instanceof Color || appearance instanceof Texture) {
+		appearanceFinal = {
+			north: appearance,
+			south: appearance,
+			east: appearance,
+			west: appearance
+		};
+	} else {
+		/*
+		if user passed a NESW object, set the attributes of appearanceFinal to
+		their coorisponding value from appearance
+		*/
+		appearanceFinal = {
+			north: appearance.north,
+			south: appearance.south,
+			east: appearance.east,
+			west: appearance.west
+		};
+	}
+
+	// check if each face in the appearance is valid
+	for (const face in appearanceFinal) {
+		/*
+		if the face isn't a color or texture, default to a transparent
+		color
+		*/
+		if (!(appearanceFinal[face] instanceof Color) &&
+			!(appearanceFinal[face] instanceof Texture)) {
+			appearanceFinal[face] = new Color(0, 0, 0, 0);
+		}
+	}
+
+	// if appearance wasn't provided, set it to a transparent color
+	cellInfo.appearance = appearanceFinal;
 }
 
 // checks floor or ceiling objects
