@@ -1,5 +1,5 @@
 # Pseudo3D_ES6
-A simple pseudo-3d engine software renderer written in JS.
+A simple pseudo-3d engine software renderer written in JS ES6.
 
 ## Features
 * advanced raycaster
